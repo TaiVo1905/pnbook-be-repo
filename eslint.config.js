@@ -49,10 +49,18 @@ export default defineConfig(
 
     rules: {
       'no-unused-vars': 'off',
-      '@typescript-eslint/no-unused-vars': 'error',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
       'no-console': 'warn',
       eqeqeq: 'off',
       curly: ['error', 'all'],
+      '@typescript-eslint/no-explicit-any': 'off',
     },
   },
   eslintConfigPrettier
