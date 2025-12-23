@@ -1,16 +1,17 @@
-import { email } from "zod";
-import { prisma } from "../../utils/prisma.js";
+import { prisma } from '../../utils/prisma.js';
+interface CreateUserParams {
+  name: string;
+  email: string;
+  password?: string;
+}
 
-export const createUser = async (name: string, email: string) => {
+export const createUser = async (data: CreateUserParams) => {
   return prisma.user.create({
-    data: {
-      name,
-      email,
-    },
+    data,
   });
 };
 
-export const findEmail = async (email: string) => {
+export const findUserByEmail = async (email: string) => {
   return prisma.user.findUnique({ where: { email } });
 };
 
