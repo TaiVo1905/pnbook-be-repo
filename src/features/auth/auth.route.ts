@@ -5,7 +5,6 @@ import { registerSchema } from './auth.validate.js';
 
 const authRoute = Router();
 
-// Route: /api/v1/auth/sign-up
 authRoute.post('/sign-up', validate(registerSchema), register);
 
 export default authRoute;
