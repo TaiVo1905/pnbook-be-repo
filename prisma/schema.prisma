@@ -6,3 +6,233 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+enum SocialProvider {
+  google
+}
+
+enum FriendStatus {
+  accepted
+  block
+}
+
+enum AttachmentType {
+  video
+  image
+  audio
+}
+
+enum MessageContentType {
+  text
+  attachment
+}
+
+enum MessageStatus {
+  sent
+  received
+  read
+}
+
+
+model User {
+  id          String    @id @default(uuid()) @db.Uuid
+  email       String    @unique @db.VarChar(100)
+  name        String    @db.VarChar(50)
+  password    String   @db.Text
+  avatarUrl   String?   @map("avatar_url") @db.VarChar(255)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  refreshTokens         RefreshToken[]
+  socialAccounts         SocialAccount[]
+  posts                  Post[]
+  postReactions          PostReaction[]
+  comments               Comment[]
+  replies                Reply[]
+  searchHistories        SearchHistory[]
+  notifications          Notification[]
+  
+  sentFriendRequests     FriendRequest[] @relation("Requester")
+  receivedFriendRequests FriendRequest[] @relation("Addressee")
+
+  friends                FriendList[]    @relation("UserRelation")
+  friendOf               FriendList[]    @relation("FriendRelation")
+
+  sentMessages           Message[]       @relation("Sender")
+  receivedMessages       Message[]       @relation("Receiver")
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  tokenHash     String   @db.VarChar(255) @map("token_hash")
+  expiryDate   DateTime @map("expiry_date")
+  userId    String   @db.Uuid @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+model SocialAccount {
+  id         String         @id @default(uuid()) @db.Uuid
+  userId     String         @map("user_id") @db.Uuid
+  provider   SocialProvider
+  providerId String         @map("provider_id") @db.VarChar(255)
+  createdAt  DateTime       @default(now()) @map("created_at")
+  deletedAt  DateTime?      @map("deleted_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("social_accounts")
+}
+
+model FriendRequest {
+  requesterId String    @map("requester_id") @db.Uuid
+  addresseeId String    @map("addressee_id") @db.Uuid
+  createdAt   DateTime  @default(now()) @map("created_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  requester User @relation("Requester", fields: [requesterId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  addressee User @relation("Addressee", fields: [addresseeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@id([requesterId, addresseeId])
+  @@map("friend_request")
+}
+
+model FriendList {
+  userId    String       @map("user_id") @db.Uuid
+  friendId  String       @map("friend_id") @db.Uuid
+  status    FriendStatus
+  createdAt DateTime     @default(now()) @map("created_at")
+  deletedAt DateTime?    @map("deleted_at")
+
+  user   User @relation("UserRelation", fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  friend User @relation("FriendRelation", fields: [friendId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@id([userId, friendId])
+  @@map("friend_list")
+}
+
+model Post {
+  id             String    @id @default(uuid()) @db.Uuid
+  posterId       String    @map("poster_id") @db.Uuid
+  content        String    @db.Text
+  originalPostId String?   @map("original_post_id") @db.Uuid
+  reactionCount  Int       @default(0) @map("reaction_count")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  deletedAt      DateTime? @map("deleted_at")
+
+  poster       User            @relation(fields: [posterId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  attachments  PostAttachment[]
+  reactions    PostReaction[]
+  comments     Comment[]
+  
+  originalPost Post?           @relation("SharedPost", fields: [originalPostId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  shares       Post[]          @relation("SharedPost")
+
+  @@map("posts")
+}
+
+model PostAttachment {
+  id             String         @id @default(uuid()) @db.Uuid
+  postId         String         @map("post_id") @db.Uuid
+  attachmentUrl  String         @map("attachment_url") @db.VarChar(255)
+  attachmentType AttachmentType @map("attachment_type")
+  createdAt      DateTime       @default(now()) @map("created_at")
+  deletedAt      DateTime?      @map("deleted_at")
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("post_attachments")
+}
+
+model PostReaction {
+  id        String    @id @default(uuid()) @db.Uuid
+  postId    String    @map("post_id") @db.Uuid
+  reactorId String    @map("reactor_id") @db.Uuid
+  createdAt DateTime  @default(now()) @map("created_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  post    Post @relation(fields: [postId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  reactor User @relation(fields: [reactorId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([postId, reactorId])
+
+  @@map("post_reactions")
+}
+
+model Comment {
+  id          String    @id @default(uuid()) @db.Uuid
+  postId      String    @map("post_id") @db.Uuid
+  commenterId String    @map("commenter_id") @db.Uuid
+  content     String    @db.Text
+  createdAt   DateTime  @default(now()) @map("created_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  post      Post    @relation(fields: [postId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  commenter User    @relation(fields: [commenterId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  replies   Reply[]
+
+  @@map("comments")
+}
+
+model Reply {
+  id        String    @id @default(uuid()) @db.Uuid
+  commentId String    @map("comment_id") @db.Uuid
+  replierId String    @map("replier_id") @db.Uuid
+  content   String    @db.Text
+  createdAt DateTime  @default(now()) @map("created_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  replier User    @relation(fields: [replierId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("replies")
+}
+
+model SearchHistory {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  keyword   String    @db.Text
+  createdAt DateTime  @default(now()) @map("created_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("search_histories")
+}
+
+model Message {
+  id          String             @id @default(uuid()) @db.Uuid
+  senderId    String             @map("sender_id") @db.Uuid
+  receiverId  String             @map("receiver_id") @db.Uuid
+  contentType MessageContentType @map("content_type")
+  content     String             @db.Text
+  status      MessageStatus
+  createdAt   DateTime           @default(now()) @map("created_at")
+  deletedAt   DateTime?          @map("deleted_at")
+
+  sender   User @relation("Sender", fields: [senderId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  receiver User @relation("Receiver", fields: [receiverId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("messages")
+}
+
+model Notification {
+  id            String    @id @default(uuid()) @db.Uuid
+  receiverId    String    @map("receiver_id") @db.Uuid
+  title         String    @map("title") @db.VarChar(255)
+  content       String    @db.Text
+  targetDetails String?   @map("target_details") @db.Text
+  isRead        Boolean   @default(false) @map("is_read")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  deletedAt     DateTime? @map("deleted_at")
+
+  receiver User @relation(fields: [receiverId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("notifications")
+}
