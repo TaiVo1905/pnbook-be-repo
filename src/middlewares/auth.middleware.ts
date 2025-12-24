@@ -7,37 +7,37 @@ interface JwtPayload {
   id: string;
 }
 
-export const authMiddleware = (
+export const authMiddleware = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    throw new UnauthorizedError();
-  }
-  const token: string = authHeader.split(' ')[1] as string;
-
   try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return next(new UnauthorizedError());
+    }
+    const token: string = authHeader.split(' ')[1] as string;
+
     const secretKey: string = process.env.JWT_SECRET_KEY!;
     const decoded: JwtPayload = jwt.verify(token, secretKey) as JwtPayload;
 
-    prisma.user.findUnique({ where: { id: decoded.id } }).then((user) => {
-      if (!user) {
-        throw new UnauthorizedError();
-      } else if (user.deletedAt) {
-        throw new ForbiddenError();
-      }
+    const user = await prisma.user.findUnique({ where: { id: decoded.id } });
 
-      req.user = user;
-      next();
-    });
+    if (!user) {
+      return next(new UnauthorizedError());
+    } else if (user.deletedAt) {
+      return next(new ForbiddenError());
+    }
+
+    req.user = user;
+    next();
   } catch (error) {
     if (error instanceof jwt.JsonWebTokenError) {
-      throw new UnauthorizedError('Invalid token');
+      return next(new UnauthorizedError('Invalid token'));
     } else if (error instanceof jwt.TokenExpiredError) {
-      throw new UnauthorizedError('Token has expired');
+      return next(new UnauthorizedError('Token has expired'));
     }
-    throw error;
+    next(error);
   }
 };

@@ -1,4 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
+import morgan from 'morgan';
 import { ApiError } from '@/core/apiError.js';
 import { statusCodes } from '@/core/statusCode.constant.js';
 
@@ -29,9 +30,9 @@ export const errorHandler = (
     statusCode === statusCodes.INTERNAL_SERVER_ERROR ||
     process.env.NODE_ENV === 'development'
   ) {
-    console.error(
-      `[ERROR] ${req.method} ${req.originalUrl} >> StatusCode: ${statusCode}`
-    );
+    morgan.token('error-status', () => statusCode.toString());
+    const errorLog = morgan(':method :url >> StatusCode: :error-status');
+    errorLog(req, res, () => {});
     console.error(err);
   }
 
