@@ -34,6 +34,12 @@ export class UnauthorizedError extends ApiError {
   }
 }
 
+export class ForbiddenError extends ApiError {
+  constructor(message: string = 'Forbidden') {
+    super(statusCodes.FORBIDDEN, message);
+  }
+}
+
 export class InternalServerError extends ApiError {
   constructor(message: string = 'Internal Server Error') {
     super(statusCodes.INTERNAL_SERVER_ERROR, message);
