@@ -57,7 +57,7 @@ export default defineConfig(
       'no-console': 'warn',
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unsafe-function-type': 'error',
-      'prefer-const': ['error'],
+      'prefer-const': 'error',
 
       eqeqeq: 'off',
       curly: ['error', 'all'],

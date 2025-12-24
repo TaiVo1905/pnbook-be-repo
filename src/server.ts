@@ -1,7 +1,8 @@
-import app from "./app.js";
+import app from './app.js';
+import { config } from './config/index.js';
 
-const PORT = process.env.PORT || 5001;
+const PORT = config.port;
 
 app.listen(PORT, () => {
-  console.log(`Connected successfull with port: ${PORT}`);
+  console.log(`Server url is http://localhost:${PORT}`);
 });
