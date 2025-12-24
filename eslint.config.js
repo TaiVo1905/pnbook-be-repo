@@ -6,6 +6,7 @@ import eslintConfigPrettier from 'eslint-config-prettier';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { defineConfig } from 'eslint/config';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -19,12 +20,7 @@ export default defineConfig(
       'prisma/generated/**',
       '*.config.js',
       '.*.js',
-      'scripts/**',
-      'husky/**',
-      '.husky/**',
-      '!.husky/pre-commit',
-      '!.husky/commit-msg',
-      '!.husky/pre-push',
+      'coverage/**',
       '.package-lock.json',
     ],
   },
@@ -33,7 +29,7 @@ export default defineConfig(
   ...tseslint.configs.recommended,
 
   {
-    files: ['**/*.{ts}'],
+    files: ['**/*.ts', '**/*.js'],
 
     languageOptions: {
       ecmaVersion: 2020,
@@ -49,8 +45,20 @@ export default defineConfig(
 
     rules: {
       'no-unused-vars': 'off',
-      '@typescript-eslint/no-unused-vars': 'error',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
+
       'no-console': 'warn',
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unsafe-function-type': 'error',
+      'prefer-const': 'error',
+
       eqeqeq: 'off',
       curly: ['error', 'all'],
     },
