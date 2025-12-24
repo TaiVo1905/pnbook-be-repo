@@ -28,7 +28,7 @@ enum MessageContentType {
 }
 
 enum MessageStatus {
-  send
+  sent
   received
   read
 }
@@ -38,7 +38,7 @@ model User {
   id          String    @id @default(uuid()) @db.Uuid
   email       String    @unique @db.VarChar(100)
   name        String    @db.VarChar(50)
-  password    String   @db.VarChar(100)
+  password    String   @db.Text
   avatarUrl   String?   @map("avatar_url") @db.VarChar(255)
   createdAt   DateTime  @default(now()) @map("created_at")
   deletedAt   DateTime? @map("deleted_at")
@@ -67,12 +67,12 @@ model User {
 model RefreshToken {
   id        String   @id @default(uuid()) @db.Uuid
   tokenHash     String   @db.VarChar(255) @map("token_hash")
-  expiryDate   DateTime 
+  expiryDate   DateTime @map("expiry_date")
   userId    String   @db.Uuid @map("user_id")
   createdAt DateTime @default(now()) @map("created_at")
   deletedAt DateTime? @map("deleted_at")
 
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("refresh_tokens")
 }
@@ -85,7 +85,7 @@ model SocialAccount {
   createdAt  DateTime       @default(now()) @map("created_at")
   deletedAt  DateTime?      @map("deleted_at")
 
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("social_accounts")
 }
@@ -96,8 +96,8 @@ model FriendRequest {
   createdAt   DateTime  @default(now()) @map("created_at")
   deletedAt   DateTime? @map("deleted_at")
 
-  requester User @relation("Requester", fields: [requesterId], references: [id])
-  addressee User @relation("Addressee", fields: [addresseeId], references: [id])
+  requester User @relation("Requester", fields: [requesterId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  addressee User @relation("Addressee", fields: [addresseeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@id([requesterId, addresseeId])
   @@map("friend_request")
@@ -110,8 +110,8 @@ model FriendList {
   createdAt DateTime     @default(now()) @map("created_at")
   deletedAt DateTime?    @map("deleted_at")
 
-  user   User @relation("UserRelation", fields: [userId], references: [id])
-  friend User @relation("FriendRelation", fields: [friendId], references: [id])
+  user   User @relation("UserRelation", fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  friend User @relation("FriendRelation", fields: [friendId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@id([userId, friendId])
   @@map("friend_list")
@@ -126,12 +126,12 @@ model Post {
   createdAt      DateTime  @default(now()) @map("created_at")
   deletedAt      DateTime? @map("deleted_at")
 
-  poster       User            @relation(fields: [posterId], references: [id])
+  poster       User            @relation(fields: [posterId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   attachments  PostAttachment[]
   reactions    PostReaction[]
   comments     Comment[]
   
-  originalPost Post?           @relation("SharedPost", fields: [originalPostId], references: [id])
+  originalPost Post?           @relation("SharedPost", fields: [originalPostId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   shares       Post[]          @relation("SharedPost")
 
   @@map("posts")
@@ -145,7 +145,7 @@ model PostAttachment {
   createdAt      DateTime       @default(now()) @map("created_at")
   deletedAt      DateTime?      @map("deleted_at")
 
-  post Post @relation(fields: [postId], references: [id])
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("post_attachments")
 }
@@ -157,8 +157,10 @@ model PostReaction {
   createdAt DateTime  @default(now()) @map("created_at")
   deletedAt DateTime? @map("deleted_at")
 
-  post    Post @relation(fields: [postId], references: [id])
-  reactor User @relation(fields: [reactorId], references: [id])
+  post    Post @relation(fields: [postId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  reactor User @relation(fields: [reactorId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([postId, reactorId])
 
   @@map("post_reactions")
 }
@@ -171,8 +173,8 @@ model Comment {
   createdAt   DateTime  @default(now()) @map("created_at")
   deletedAt   DateTime? @map("deleted_at")
 
-  post      Post    @relation(fields: [postId], references: [id])
-  commenter User    @relation(fields: [commenterId], references: [id])
+  post      Post    @relation(fields: [postId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  commenter User    @relation(fields: [commenterId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   replies   Reply[]
 
   @@map("comments")
@@ -186,8 +188,8 @@ model Reply {
   createdAt DateTime  @default(now()) @map("created_at")
   deletedAt DateTime? @map("deleted_at")
 
-  comment Comment @relation(fields: [commentId], references: [id])
-  replier User    @relation(fields: [replierId], references: [id])
+  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  replier User    @relation(fields: [replierId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("replies")
 }
@@ -195,11 +197,11 @@ model Reply {
 model SearchHistory {
   id        String    @id @default(uuid()) @db.Uuid
   userId    String    @map("user_id") @db.Uuid
-  keyword   String    @map("key_word") @db.Text
+  keyword   String    @db.Text
   createdAt DateTime  @default(now()) @map("created_at")
   deletedAt DateTime? @map("deleted_at")
 
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("search_histories")
 }
@@ -214,8 +216,8 @@ model Message {
   createdAt   DateTime           @default(now()) @map("created_at")
   deletedAt   DateTime?          @map("deleted_at")
 
-  sender   User @relation("Sender", fields: [senderId], references: [id])
-  receiver User @relation("Receiver", fields: [receiverId], references: [id])
+  sender   User @relation("Sender", fields: [senderId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  receiver User @relation("Receiver", fields: [receiverId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("messages")
 }
@@ -223,14 +225,14 @@ model Message {
 model Notification {
   id            String    @id @default(uuid()) @db.Uuid
   receiverId    String    @map("receiver_id") @db.Uuid
-  title         String    @map("Title") @db.VarChar(255)
+  title         String    @map("title") @db.VarChar(255)
   content       String    @db.Text
-  targetDetails String?   @map("targetDetails") @db.Text
+  targetDetails String?   @map("target_details") @db.Text
   isRead        Boolean   @default(false) @map("is_read")
   createdAt     DateTime  @default(now()) @map("created_at")
   deletedAt     DateTime? @map("deleted_at")
 
-  receiver User @relation(fields: [receiverId], references: [id])
+  receiver User @relation(fields: [receiverId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("notifications")
 }
