@@ -1,5 +1,4 @@
-import { OAuth2Client } from 'google-auth-library';
-import { config } from '@/config/index.js';
+import { googleClient } from '@/config/google.js';
 import type { GoogleUserInfo } from './googleUser.type.js';
 
 import {
@@ -9,12 +8,6 @@ import {
 import { GoogleRepository } from './google.repository.js';
 import { UserRepository } from '@/shared/repositories/user.repository.js';
 import { RefreshTokenRepository } from '@/shared/repositories/refreshToken.repository.js';
-
-const googleClient = new OAuth2Client(
-  config.google.clientId,
-  config.google.clientSecret,
-  config.google.redirectUri
-);
 
 export const googleService = async (authCode: string) => {
   const { tokens } = await googleClient.getToken(authCode);

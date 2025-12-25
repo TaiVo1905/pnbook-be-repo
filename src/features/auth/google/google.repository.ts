@@ -1,6 +1,7 @@
 import { prisma } from '@/utils/prisma.js';
 import type { GoogleUserInfo } from './googleUser.type.js';
 import type { User } from 'generated/prisma/client.js';
+import { PROVIDER } from '../provider.type.js';
 
 export const GoogleRepository = () => {
   const createNewUser = async (
@@ -13,7 +14,7 @@ export const GoogleRepository = () => {
         avatarUrl: userInfoResponse.picture,
         socialAccounts: {
           create: {
-            provider: 'google',
+            provider: PROVIDER.GOOGLE,
             providerId: userInfoResponse.sub,
           },
         },
@@ -25,7 +26,7 @@ export const GoogleRepository = () => {
     return await prisma.socialAccount.findUnique({
       where: {
         provider_providerId: {
-          provider: 'google',
+          provider: PROVIDER.GOOGLE,
           providerId: userInfoResponse.sub,
         },
       },
