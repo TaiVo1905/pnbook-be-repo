@@ -1,5 +1,10 @@
+import authRoutes from '@/features/auth/auth.route.js';
 import { Router } from 'express';
 
-const route = Router();
+const authRoute = Router();
 
-export default route;
+authRoute.use('/', authRoutes);
+
+const protectedRoute = Router();
+
+export { authRoute, protectedRoute };
