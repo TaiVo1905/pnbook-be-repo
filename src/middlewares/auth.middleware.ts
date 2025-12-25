@@ -26,7 +26,9 @@ export const authMiddleware = async (
 
     if (!user) {
       return next(new UnauthorizedError());
-    } else if (user.deletedAt) {
+    }
+
+    if (user.deletedAt) {
       return next(new ForbiddenError());
     }
 
@@ -35,7 +37,9 @@ export const authMiddleware = async (
   } catch (error) {
     if (error instanceof jwt.JsonWebTokenError) {
       return next(new UnauthorizedError('Invalid token'));
-    } else if (error instanceof jwt.TokenExpiredError) {
+    }
+
+    if (error instanceof jwt.TokenExpiredError) {
       return next(new UnauthorizedError('Token has expired'));
     }
     next(error);
