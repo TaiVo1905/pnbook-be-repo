@@ -15,8 +15,14 @@ export const validate =
     } catch (error) {
       if (error instanceof ZodError) {
         const errorMessages = error.issues.map((issue) => {
-          const field = issue.path.join('.');
-          return `${field}: ${issue.message}`;
+          const trimmedPath = issue.path
+            .map(String)
+            .filter((seg) => !['body', 'query', 'params'].includes(seg));
+
+          if (trimmedPath.length > 0) {
+            return `${trimmedPath.join('.')}: ${issue.message}`;
+          }
+          return issue.message;
         });
 
         next(new BadRequestError(errorMessages.join(', ')));
