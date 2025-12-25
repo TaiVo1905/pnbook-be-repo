@@ -19,3 +19,7 @@ export const UserRepository = () => {
 
   return { updateUserInfo };
 };
+
+export const findUserByEmail = async (email: string) => {
+  return await prisma.user.findUnique({ where: { email } });
+};
