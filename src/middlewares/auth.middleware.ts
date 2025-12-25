@@ -2,6 +2,7 @@ import type { Request, Response, NextFunction } from 'express';
 import { ForbiddenError, UnauthorizedError } from '@/core/apiError.js';
 import jwt from 'jsonwebtoken';
 import { prisma } from '@/utils/prisma.js';
+import { config } from '@/config/index.js';
 
 interface JwtPayload {
   id: string;
@@ -19,7 +20,7 @@ export const authMiddleware = async (
     }
     const token: string = authHeader.split(' ')[1] as string;
 
-    const secretKey: string = process.env.JWT_SECRET_KEY!;
+    const secretKey: string = config.jwt.secret!;
     const decoded: JwtPayload = jwt.verify(token, secretKey) as JwtPayload;
 
     const user = await prisma.user.findUnique({ where: { id: decoded.id } });

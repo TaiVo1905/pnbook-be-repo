@@ -1,10 +1,10 @@
 import authRoutes from '@/features/auth/auth.route.js';
 import { Router } from 'express';
 
-const route = Router();
-
 const authRoute = Router();
 
-authRoute.use('/auth', authRoutes);
+authRoute.use('/', authRoutes);
 
-export { authRoute, route };
+const protectedRoute = Router();
+
+export { authRoute, protectedRoute };
