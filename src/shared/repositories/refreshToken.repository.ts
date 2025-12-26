@@ -1,7 +1,7 @@
 import { prisma } from '@/utils/prisma.js';
 import crypto from 'crypto';
 
-export const RefreshTokenRepository = () => {
+const refreshTokenRepository = () => {
   const hashToken = (token: string): string => {
     return crypto.createHash('sha256').update(token).digest('hex');
   };
@@ -70,3 +70,5 @@ export const RefreshTokenRepository = () => {
     deleteAllUserRefreshTokens,
   };
 };
+
+export default refreshTokenRepository();
