@@ -1,14 +1,33 @@
-import type { GoogleUserInfo } from '@/features/auth/google/googleUser.type.js';
+import type { GoogleUserInfo } from '@/infrastructure/interfaces/googleUser.type.js';
 import { prisma } from '@/utils/prisma.js';
-import type { SocialAccount } from 'generated/prisma/index.js';
+import type { Prisma } from 'generated/prisma/index.js';
 
-export const UserRepository = () => {
-  const updateUserInfo = async (
-    socialAccount: SocialAccount,
-    userInfoResponse: GoogleUserInfo
+const userRepository = () => {
+  const findUserByEmail = async (email: string) => {
+    return await prisma.user.findUnique({ where: { email } });
+  };
+
+  const createUser = async (data: {
+    name: string;
+    email: string;
+    password: string;
+  }) => {
+    return await prisma.user.create({
+      data: {
+        name: data.name,
+        email: data.email,
+        password: data.password,
+      },
+    });
+  };
+
+  const updateUserWithGoogleAuth = async (
+    userId: string,
+    userInfoResponse: GoogleUserInfo,
+    tx: Prisma.TransactionClient = prisma
   ) => {
-    await prisma.user.update({
-      where: { id: socialAccount.userId },
+    return await tx.user.update({
+      where: { id: userId },
       data: {
         name: userInfoResponse.name,
         email: userInfoResponse.email,
@@ -17,9 +36,30 @@ export const UserRepository = () => {
     });
   };
 
-  return { updateUserInfo };
+  const upserUserWithGoogleAuth = async (
+    userInfoResponse: GoogleUserInfo,
+    tx: Prisma.TransactionClient = prisma
+  ) => {
+    return await tx.user.upsert({
+      where: { email: userInfoResponse.email },
+      update: {
+        name: userInfoResponse.name,
+        avatarUrl: userInfoResponse.picture,
+      },
+      create: {
+        name: userInfoResponse.name,
+        email: userInfoResponse.email,
+        avatarUrl: userInfoResponse.picture,
+      },
+    });
+  };
+
+  return {
+    findUserByEmail,
+    createUser,
+    updateUserWithGoogleAuth,
+    upserUserWithGoogleAuth,
+  };
 };
 
-export const findUserByEmail = async (email: string) => {
-  return await prisma.user.findUnique({ where: { email } });
-};
+export default userRepository();
