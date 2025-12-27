@@ -1,6 +1,6 @@
 import type { GoogleUserInfo } from '@/infrastructure/interfaces/googleUser.type.js';
-import { PROVIDER } from '@/infrastructure/provider.type.js';
 import { prisma } from '@/utils/prisma.js';
+import type { Prisma } from 'generated/prisma/index.js';
 
 const userRepository = () => {
   const findUserByEmail = async (email: string) => {
@@ -21,11 +21,12 @@ const userRepository = () => {
     });
   };
 
-  const updateUserInfo = async (
+  const updateUserWithGoogleAuth = async (
     userId: string,
-    userInfoResponse: GoogleUserInfo
+    userInfoResponse: GoogleUserInfo,
+    tx: Prisma.TransactionClient = prisma
   ) => {
-    return await prisma.user.update({
+    return await tx.user.update({
       where: { id: userId },
       data: {
         name: userInfoResponse.name,
@@ -35,60 +36,29 @@ const userRepository = () => {
     });
   };
 
-  const findOrCreateUserWithGoogleAuth = async (
-    userInfoResponse: GoogleUserInfo
+  const upserUserWithGoogleAuth = async (
+    userInfoResponse: GoogleUserInfo,
+    tx: Prisma.TransactionClient = prisma
   ) => {
-    return await prisma.$transaction(async (tx) => {
-      const socialAccount = await tx.socialAccount.findUnique({
-        where: {
-          provider_providerId: {
-            provider: PROVIDER.GOOGLE,
-            providerId: userInfoResponse.sub,
-          },
-        },
-      });
-
-      let user;
-
-      if (!socialAccount) {
-        user = await tx.user.upsert({
-          where: { email: userInfoResponse.email },
-          update: {
-            name: userInfoResponse.name,
-            avatarUrl: userInfoResponse.picture,
-          },
-          create: {
-            name: userInfoResponse.name,
-            email: userInfoResponse.email,
-            avatarUrl: userInfoResponse.picture,
-          },
-        });
-        await tx.socialAccount.create({
-          data: {
-            userId: user.id,
-            provider: PROVIDER.GOOGLE,
-            providerId: userInfoResponse.sub,
-          },
-        });
-      } else {
-        user = await tx.user.update({
-          where: { id: socialAccount.userId },
-          data: {
-            name: userInfoResponse.name,
-            avatarUrl: userInfoResponse.picture,
-          },
-        });
-      }
-
-      return user;
+    return await tx.user.upsert({
+      where: { email: userInfoResponse.email },
+      update: {
+        name: userInfoResponse.name,
+        avatarUrl: userInfoResponse.picture,
+      },
+      create: {
+        name: userInfoResponse.name,
+        email: userInfoResponse.email,
+        avatarUrl: userInfoResponse.picture,
+      },
     });
   };
 
   return {
     findUserByEmail,
     createUser,
-    updateUserInfo,
-    findOrCreateUserWithGoogleAuth,
+    updateUserWithGoogleAuth,
+    upserUserWithGoogleAuth,
   };
 };
 

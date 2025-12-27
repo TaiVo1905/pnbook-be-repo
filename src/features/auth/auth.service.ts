@@ -8,7 +8,18 @@ import googleService from '@/infrastructure/google.service.js';
 import type { AuthRequestDto } from './authRequest.dto.js';
 import { BadRequestError, UnauthorizedError } from '@/core/apiError.js';
 import bcrypt from 'bcryptjs';
+import { prisma } from '@/utils/prisma.js';
+import socialAccountRepository from '@/shared/repositories/socialAccount.repository.js';
 
+const generateAndStoreTokens = async (userId: string) => {
+  await refreshTokenRepository.deleteAllUserRefreshTokens(userId);
+
+  const accessToken = generateAccessToken(userId);
+  const refreshToken = generateRefreshToken();
+
+  await refreshTokenRepository.createRefreshToken(userId, refreshToken);
+  return { accessToken, refreshToken };
+};
 const authService = () => {
   const signUpWithEmail = async (data: AuthRequestDto): Promise<void> => {
     const existingUser = await userRepository.findUserByEmail(data.email);
@@ -41,12 +52,7 @@ const authService = () => {
       throw new UnauthorizedError('Invalid email or password');
     }
 
-    await refreshTokenRepository.deleteAllUserRefreshTokens(user.id);
-
-    const accessToken = generateAccessToken(user.id);
-    const refreshToken = generateRefreshToken();
-
-    await refreshTokenRepository.createRefreshToken(user.id, refreshToken);
+    const { accessToken, refreshToken } = await generateAndStoreTokens(user.id);
 
     return { accessToken, refreshToken };
   };
@@ -54,15 +60,37 @@ const authService = () => {
   const googleAuth = async (authCode: string) => {
     const userInfoResponse = await googleService.getUserInfo(authCode);
 
-    const user =
-      await userRepository.findOrCreateUserWithGoogleAuth(userInfoResponse);
+    const user = await prisma.$transaction(async (tx) => {
+      const socialAccount = await socialAccountRepository.findSocialAccount(
+        userInfoResponse.sub,
+        tx
+      );
 
-    await refreshTokenRepository.deleteAllUserRefreshTokens(user.id);
+      let user;
 
-    const accessToken = generateAccessToken(user.id);
-    const refreshToken = generateRefreshToken();
+      if (!socialAccount) {
+        user = await userRepository.upserUserWithGoogleAuth(
+          userInfoResponse,
+          tx
+        );
 
-    await refreshTokenRepository.createRefreshToken(user.id, refreshToken);
+        await socialAccountRepository.createNewSocialAccount(
+          user.id,
+          userInfoResponse,
+          tx
+        );
+
+        return user;
+      }
+
+      return await userRepository.updateUserWithGoogleAuth(
+        socialAccount.userId,
+        userInfoResponse,
+        tx
+      );
+    });
+
+    const { accessToken, refreshToken } = await generateAndStoreTokens(user.id);
 
     return { accessToken, refreshToken };
   };

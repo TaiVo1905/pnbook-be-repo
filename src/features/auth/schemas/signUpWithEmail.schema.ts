@@ -15,7 +15,7 @@ export const signUpWithEmailSchema = z.object({
       passwordConfirmation: z.string(),
     })
     .refine((data) => data.password === data.passwordConfirmation, {
-      message: 'Password does not match',
+      message: 'Passwords do not match',
       path: ['passwordConfirmation'],
     }),
 });

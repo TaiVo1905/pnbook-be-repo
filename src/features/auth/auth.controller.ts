@@ -14,10 +14,11 @@ export const authController = {
     );
     return res.status(response.statusCode).json(response);
   }),
+
   signInWithEmail: catchAsync(async (req: Request, res: Response) => {
     const tokens = await authService.signInWithEmail(req.body);
 
-    res = setTokenCookie(res, tokens);
+    setTokenCookie(res, tokens);
 
     const response = new ApiResponse(
       statusCodes.SUCCESS,
@@ -29,7 +30,7 @@ export const authController = {
   googleAuth: catchAsync(async (req: Request, res: Response) => {
     const { authCode } = req.body;
     const tokens = await authService.googleAuth(authCode);
-    res = setTokenCookie(res, tokens);
+    setTokenCookie(res, tokens);
     const response = new ApiResponse(
       statusCodes.SUCCESS,
       'User signed in with Google successfully'
