@@ -3,11 +3,15 @@ import { prisma } from '@/utils/prisma.js';
 import type { Prisma } from 'generated/prisma/index.js';
 
 const userRepository = () => {
-  const findUserByEmail = async (email: string) => {
+  const findByEmail = async (email: string) => {
     return await prisma.user.findUnique({ where: { email } });
   };
 
-  const createUser = async (data: {
+  const findById = async (id: string) => {
+    return await prisma.user.findUnique({ where: { id, deletedAt: null } });
+  };
+
+  const create = async (data: {
     name: string;
     email: string;
     password: string;
@@ -21,7 +25,48 @@ const userRepository = () => {
     });
   };
 
-  const updateUserWithGoogleAuth = async (
+  const updateById = async (
+    id: string,
+    data: Partial<{
+      name: string;
+      password: string;
+      avatarUrl: string;
+    }>
+  ) => {
+    return await prisma.user.update({
+      where: { id },
+      data,
+    });
+  };
+
+  const searchByNameOrEmail = async (keyword: string, page = 1, limit = 10) => {
+    const [results, count] = await Promise.all([
+      prisma.user.findMany({
+        where: {
+          OR: [
+            { name: { contains: keyword, mode: 'insensitive' } },
+            { email: { contains: keyword, mode: 'insensitive' } },
+          ],
+          deletedAt: null,
+        },
+        orderBy: { name: 'asc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      prisma.user.count({
+        where: {
+          OR: [
+            { name: { contains: keyword, mode: 'insensitive' } },
+            { email: { contains: keyword, mode: 'insensitive' } },
+          ],
+          deletedAt: null,
+        },
+      }),
+    ]);
+    return { results, count };
+  };
+
+  const updateWithGoogleAuth = async (
     userId: string,
     userInfoResponse: GoogleUserInfo,
     tx: Prisma.TransactionClient = prisma
@@ -36,7 +81,7 @@ const userRepository = () => {
     });
   };
 
-  const upserUserWithGoogleAuth = async (
+  const upsertWithGoogleAuth = async (
     userInfoResponse: GoogleUserInfo,
     tx: Prisma.TransactionClient = prisma
   ) => {
@@ -55,10 +100,13 @@ const userRepository = () => {
   };
 
   return {
-    findUserByEmail,
-    createUser,
-    updateUserWithGoogleAuth,
-    upserUserWithGoogleAuth,
+    findByEmail,
+    findById,
+    searchByNameOrEmail,
+    updateById,
+    create,
+    updateWithGoogleAuth,
+    upsertWithGoogleAuth,
   };
 };
 
