@@ -11,6 +11,7 @@ usersRoutes.patch(
   validate(userSchema),
   usersController.updateById
 );
-usersRoutes.get('/users/search', validate(userSchema), usersController.search);
+
+usersRoutes.get('/search', validate(userSchema), usersController.search);
 
 export default usersRoutes;

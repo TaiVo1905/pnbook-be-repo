@@ -8,7 +8,7 @@ const userRepository = () => {
   };
 
   const findById = async (id: string) => {
-    return await prisma.user.findUnique({ where: { id } });
+    return await prisma.user.findUnique({ where: { id, deletedAt: null } });
   };
 
   const create = async (data: {
@@ -29,7 +29,6 @@ const userRepository = () => {
     id: string,
     data: Partial<{
       name: string;
-      email: string;
       password: string;
       avatarUrl: string;
     }>
@@ -48,6 +47,7 @@ const userRepository = () => {
             { name: { contains: keyword, mode: 'insensitive' } },
             { email: { contains: keyword, mode: 'insensitive' } },
           ],
+          deletedAt: null,
         },
         orderBy: { name: 'asc' },
         skip: (page - 1) * limit,
@@ -59,10 +59,8 @@ const userRepository = () => {
             { name: { contains: keyword, mode: 'insensitive' } },
             { email: { contains: keyword, mode: 'insensitive' } },
           ],
+          deletedAt: null,
         },
-        orderBy: { name: 'asc' },
-        skip: (page - 1) * limit,
-        take: limit,
       }),
     ]);
     return { results, count };

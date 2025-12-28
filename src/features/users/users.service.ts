@@ -10,7 +10,7 @@ const usersService = () => {
 
   const updateById = async (
     id: string,
-    data: { name?: string; email?: string; avatarUrl?: string }
+    data: { name?: string; avatarUrl?: string }
   ) => {
     await getById(id);
     return await userRepository.updateById(id, data);
