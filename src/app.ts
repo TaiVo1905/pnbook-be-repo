@@ -1,6 +1,7 @@
 import express from 'express';
 import { authRoute, protectedRoute } from './routes/index.js';
 import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
 import { errorHandler } from './middlewares/errorHandle.middleware.js';
 import { authMiddleware } from './middlewares/auth.middleware.js';
 import { NotFoundError } from './core/apiError.js';
@@ -8,6 +9,7 @@ import { NotFoundError } from './core/apiError.js';
 const app = express();
 
 app.use(helmet());
+app.use(cookieParser());
 
 app.use(express.json());
 

@@ -39,9 +39,14 @@ const userRepository = () => {
     });
   };
 
-  const searchByNameOrEmail = async (keyword: string, page = 1, limit = 10) => {
-    const [results, count] = await Promise.all([
-      prisma.user.findMany({
+  const searchByNameOrEmail = async (
+    keyword: string,
+    page = 1,
+    limit = 10,
+    tx: Prisma.TransactionClient = prisma
+  ) => {
+    const [users, count] = await Promise.all([
+      tx.user.findMany({
         where: {
           OR: [
             { name: { contains: keyword, mode: 'insensitive' } },
@@ -53,7 +58,7 @@ const userRepository = () => {
         skip: (page - 1) * limit,
         take: limit,
       }),
-      prisma.user.count({
+      tx.user.count({
         where: {
           OR: [
             { name: { contains: keyword, mode: 'insensitive' } },
@@ -63,7 +68,7 @@ const userRepository = () => {
         },
       }),
     ]);
-    return { results, count };
+    return { users, count };
   };
 
   const updateWithGoogleAuth = async (

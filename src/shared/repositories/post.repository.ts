@@ -1,4 +1,6 @@
+import { NotFoundError } from '@/core/apiError.js';
 import { prisma } from '@/utils/prisma.js';
+import type { Prisma } from 'generated/prisma/edge.js';
 
 const postRepository = () => {
   const create = async (
@@ -79,6 +81,76 @@ const postRepository = () => {
     });
   };
 
+  const react = async (postId: string, reactorId: string) => {
+    const post = await prisma.post.findUnique({ where: { id: postId } });
+    if (!post || post.deletedAt) {
+      throw new NotFoundError('Post not found');
+    }
+
+    const existingReaction = await prisma.postReaction.findUnique({
+      where: { postId_reactorId: { postId, reactorId } },
+    });
+
+    if (existingReaction && existingReaction.deletedAt) {
+      return await prisma.postReaction.update({
+        where: { id: existingReaction.id },
+        data: { deletedAt: null },
+      });
+    } else if (!existingReaction) {
+      return await prisma.postReaction.create({
+        data: { postId, reactorId },
+      });
+    }
+
+    return existingReaction;
+  };
+
+  const unreact = async (postId: string, reactorId: string) => {
+    const reaction = await prisma.postReaction.findUnique({
+      where: { postId_reactorId: { postId, reactorId } },
+    });
+
+    if (!reaction) {
+      throw new NotFoundError('Reaction not found');
+    }
+
+    return await prisma.postReaction.update({
+      where: { id: reaction.id },
+      data: { deletedAt: new Date() },
+    });
+  };
+
+  const search = async (
+    keyword: string,
+    page = 1,
+    limit = 20,
+    tx: Prisma.TransactionClient = prisma
+  ) => {
+    const [posts, count] = await Promise.all([
+      tx.post.findMany({
+        where: {
+          deletedAt: null,
+          content: {
+            contains: keyword,
+          },
+        },
+        include: { attachments: { where: { deletedAt: null } } },
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      tx.post.count({
+        where: {
+          deletedAt: null,
+          content: {
+            contains: keyword,
+          },
+        },
+      }),
+    ]);
+    return { posts, count };
+  };
+
   return {
     create,
     getById,
@@ -87,6 +159,9 @@ const postRepository = () => {
     update,
     deletePost,
     listReactions,
+    react,
+    unreact,
+    search,
   };
 };
 
