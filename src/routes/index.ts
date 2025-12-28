@@ -1,4 +1,5 @@
 import authRoutes from '@/features/auth/auth.route.js';
+import friendshipsRoutes from '@/features/friendships/friendships.route.js';
 import messagesRoutes from '@/features/messages/messages.route.js';
 import notificationsRoutes from '@/features/notifications/notifications.route.js';
 import uploadsRoutes from '@/features/uploads/uploads.route.js';
@@ -13,5 +14,6 @@ const protectedRoute = Router();
 protectedRoute.use('/', messagesRoutes);
 protectedRoute.use('/', notificationsRoutes);
 protectedRoute.use('/', uploadsRoutes);
+protectedRoute.use('/', friendshipsRoutes);
 
 export { authRoute, protectedRoute };
