@@ -32,7 +32,35 @@ const firestoreService = () => {
       return { triggered: false, messageId: message.id };
     }
   };
-  return { triggerNewMessage };
+
+  const triggerNotification = async (notification: {
+    id: string;
+    receiverId: string;
+    title: string;
+    content: string;
+    targetDetails?: string;
+  }) => {
+    try {
+      const db = firebase.db();
+      await db
+        .collection('notifications')
+        .doc(notification.id)
+        .set({
+          id: notification.id,
+          receiverId: notification.receiverId,
+          title: notification.title,
+          content: notification.content,
+          targetDetails: notification.targetDetails || null,
+          isRead: false,
+          createdAt: new Date().toISOString(),
+        });
+      return { triggered: true, notificationId: notification.id };
+    } catch (_err: any) {
+      return { triggered: false, notificationId: notification.id };
+    }
+  };
+
+  return { triggerNewMessage, triggerNotification };
 };
 
 export default firestoreService();
