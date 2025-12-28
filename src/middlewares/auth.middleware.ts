@@ -14,11 +14,15 @@ export const authMiddleware = async (
   next: NextFunction
 ) => {
   try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const tokenFromCookie = req.cookies?.accessToken;
+    const tokenFromHeader = req.headers.authorization?.startsWith('Bearer ')
+      ? req.headers.authorization.split(' ')[1]
+      : undefined;
+    const token = tokenFromCookie || tokenFromHeader;
+
+    if (!token) {
       return next(new UnauthorizedError());
     }
-    const token: string = authHeader.split(' ')[1] as string;
 
     const secretKey: string = config.jwt.secret!;
     const decoded: JwtPayload = jwt.verify(token, secretKey) as JwtPayload;

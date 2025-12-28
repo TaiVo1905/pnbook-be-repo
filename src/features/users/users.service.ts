@@ -17,12 +17,12 @@ const usersService = () => {
   };
 
   const search = async (keyword: string, page = 1, limit = 20) => {
-    const { results, count } = await userRepository.searchByNameOrEmail(
+    const { users, count } = await userRepository.searchByNameOrEmail(
       keyword,
       page,
       limit
     );
-    return { results, count };
+    return { users, count };
   };
 
   return { getById, updateById, search };

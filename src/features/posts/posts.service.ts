@@ -89,6 +89,14 @@ const postsService = () => {
     return await postRepository.listReactions(postId);
   };
 
+  const react = async (postId: string, reactorId: string) => {
+    return await postRepository.react(postId, reactorId);
+  };
+
+  const unreact = async (postId: string, reactorId: string) => {
+    return await postRepository.unreact(postId, reactorId);
+  };
+
   return {
     create,
     getById,
@@ -97,6 +105,8 @@ const postsService = () => {
     update,
     remove,
     listReactions,
+    react,
+    unreact,
   };
 };
 

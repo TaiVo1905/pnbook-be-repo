@@ -74,4 +74,16 @@ export const postsController = {
     const response = ApiResponse.success('Reactions fetched', reactions);
     return res.status(response.statusCode).json(response);
   }),
+
+  react: catchAsync(async (req: Request, res: Response) => {
+    const reaction = await postsService.react(req.params.id, req.user!.id);
+    const response = ApiResponse.created('Post reacted', reaction);
+    return res.status(response.statusCode).json(response);
+  }),
+
+  unreact: catchAsync(async (req: Request, res: Response) => {
+    const reaction = await postsService.unreact(req.params.id, req.user!.id);
+    const response = ApiResponse.success('Reaction removed', reaction);
+    return res.status(response.statusCode).json(response);
+  }),
 };

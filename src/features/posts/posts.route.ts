@@ -10,6 +10,8 @@ postsRoutes.get('/users/:id/posts', postsController.getByPoster);
 postsRoutes.get('/feeds', postsController.getFeeds);
 postsRoutes.get('/posts/:id', postsController.getById);
 postsRoutes.get('/posts/:id/reactions', postsController.listReactions);
+postsRoutes.post('/posts/:id/react', postsController.react);
+postsRoutes.delete('/posts/:id/react', postsController.unreact);
 postsRoutes.patch('/posts/:id', validate(postSchema), postsController.update);
 postsRoutes.delete('/posts/:id', postsController.remove);
 
