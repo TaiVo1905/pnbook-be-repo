@@ -32,7 +32,30 @@ const firestoreService = () => {
       return { triggered: false, messageId: message.id };
     }
   };
-  return { triggerNewMessage };
+
+  const triggerNotification = async (notification: {
+    id: string;
+    receiverId: string;
+    title: string;
+    content: string;
+    targetDetails?: string;
+  }) => {
+    const db = firebase.db();
+    await db
+      .collection('notifications')
+      .doc(notification.receiverId)
+      .set({
+        id: notification.id,
+        title: notification.title,
+        content: notification.content,
+        targetDetails: notification.targetDetails || null,
+        isRead: false,
+        createdAt: new Date().toISOString(),
+      });
+    return { triggered: true, notificationId: notification.id };
+  };
+
+  return { triggerNewMessage, triggerNotification };
 };
 
 export default firestoreService();
