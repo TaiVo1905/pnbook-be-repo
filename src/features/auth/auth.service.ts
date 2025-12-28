@@ -22,7 +22,7 @@ const generateAndStoreTokens = async (userId: string) => {
 };
 const authService = () => {
   const signUpWithEmail = async (data: AuthRequestDto): Promise<void> => {
-    const existingUser = await userRepository.findUserByEmail(data.email);
+    const existingUser = await userRepository.findByEmail(data.email);
 
     if (existingUser) {
       throw new BadRequestError('Email already exists');
@@ -31,7 +31,7 @@ const authService = () => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(data.password, salt);
 
-    await userRepository.createUser({
+    await userRepository.create({
       name: data.name!,
       email: data.email,
       password: hashedPassword,
@@ -40,7 +40,7 @@ const authService = () => {
   const signInWithEmail = async (payload: AuthRequestDto) => {
     const { email, password } = payload;
 
-    const user = await userRepository.findUserByEmail(email);
+    const user = await userRepository.findByEmail(email);
 
     if (!user || !user.password) {
       throw new UnauthorizedError('Invalid email or password');
@@ -69,10 +69,7 @@ const authService = () => {
       let user;
 
       if (!socialAccount) {
-        user = await userRepository.upserUserWithGoogleAuth(
-          userInfoResponse,
-          tx
-        );
+        user = await userRepository.upsertWithGoogleAuth(userInfoResponse, tx);
 
         await socialAccountRepository.createNewSocialAccount(
           user.id,
@@ -83,7 +80,7 @@ const authService = () => {
         return user;
       }
 
-      return await userRepository.updateUserWithGoogleAuth(
+      return await userRepository.updateWithGoogleAuth(
         socialAccount.userId,
         userInfoResponse,
         tx
