@@ -99,6 +99,14 @@ const userRepository = () => {
     });
   };
 
+  const getFriendIds = async (userId: string) => {
+    const friends = await prisma.friendList.findMany({
+      where: { userId, status: 'accepted', deletedAt: null },
+      select: { friendId: true },
+    });
+    return friends.map((f) => f.friendId);
+  };
+
   return {
     findByEmail,
     findById,
@@ -107,6 +115,7 @@ const userRepository = () => {
     create,
     updateWithGoogleAuth,
     upsertWithGoogleAuth,
+    getFriendIds,
   };
 };
 
