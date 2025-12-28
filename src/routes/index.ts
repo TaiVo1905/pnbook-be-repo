@@ -20,7 +20,6 @@ protectedRoute.use('/', friendshipsRoutes);
 protectedRoute.use('/', postsRoutes);
 protectedRoute.use('/', commentsRoutes);
 protectedRoute.use('/', repliesRoutes);
-protectedRoute.use('/', postsRoutes);
 protectedRoute.use('/', notificationsRoutes);
 protectedRoute.use('/', messagesRoutes);
 protectedRoute.use('/', uploadsRoutes);
