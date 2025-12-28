@@ -105,18 +105,52 @@ const friendshipRepository = () => {
     friendId: string,
     status: 'accepted' | 'block'
   ) => {
-    return await prisma.friendList.upsert({
-      where: { userId_friendId: { userId, friendId } },
-      update: { status },
-      create: { userId, friendId, status },
-    });
+    const [primary] = await prisma.$transaction([
+      prisma.friendList.upsert({
+        where: { userId_friendId: { userId, friendId } },
+        update: { status },
+        create: { userId, friendId, status },
+      }),
+      prisma.friendList.upsert({
+        where: { userId_friendId: { userId: friendId, friendId: userId } },
+        update: { status },
+        create: { userId: friendId, friendId: userId, status },
+      }),
+    ]);
+    return primary;
   };
 
   const deleteFriendship = async (userId: string, friendId: string) => {
-    return await prisma.friendList.update({
-      where: { userId_friendId: { userId, friendId } },
-      data: { deletedAt: new Date() },
+    const deletedAt = new Date();
+    const [primaryFriendship] = await prisma.$transaction([
+      prisma.friendList.update({
+        where: { userId_friendId: { userId, friendId } },
+        data: { deletedAt },
+      }),
+      prisma.friendList.updateMany({
+        where: {
+          userId: friendId,
+          friendId: userId,
+          deletedAt: null,
+        },
+        data: { deletedAt },
+      }),
+    ]);
+    return primaryFriendship;
+  };
+
+  const areFriends = async (userId: string, friendId: string) => {
+    const friendship = await prisma.friendList.findFirst({
+      where: {
+        OR: [
+          { userId, friendId },
+          { userId: friendId, friendId: userId },
+        ],
+        status: 'accepted',
+        deletedAt: null,
+      },
     });
+    return !!friendship;
   };
 
   return {
@@ -128,6 +162,7 @@ const friendshipRepository = () => {
     rejectFriendRequest,
     updateFriendshipStatus,
     deleteFriendship,
+    areFriends,
   };
 };
 

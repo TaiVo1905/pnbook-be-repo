@@ -1,3 +1,4 @@
+import { BadRequestError } from '@/core/apiError.js';
 import firestoreService from '@/infrastructure/firestore.service.js';
 import friendshipRepository from '@/shared/repositories/friendship.repository.js';
 import notificationRepository from '@/shared/repositories/notification.repository.js';
@@ -31,6 +32,13 @@ const friendshipsService = () => {
   };
 
   const sendRequest = async (requesterId: string, addresseeId: string) => {
+    if (requesterId === addresseeId) {
+      throw new BadRequestError('Cannot send friend request to yourself');
+    }
+
+    if (await friendshipRepository.areFriends(requesterId, addresseeId)) {
+      throw new BadRequestError('You are already friends with this user');
+    }
     const request = await friendshipRepository.sendFriendRequest(
       requesterId,
       addresseeId

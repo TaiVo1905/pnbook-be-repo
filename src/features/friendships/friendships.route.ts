@@ -20,11 +20,14 @@ friendshipsRoutes.post(
   friendshipsController.sendRequest
 );
 friendshipsRoutes.patch(
-  '/friendships/:id',
+  '/friendships/:friendId',
   validate(updateSchema),
   friendshipsController.updateStatus
 );
-friendshipsRoutes.delete('/friendships/:id', friendshipsController.remove);
+friendshipsRoutes.delete(
+  '/friendships/:friendId',
+  friendshipsController.remove
+);
 friendshipsRoutes.patch(
   '/friendships/requests/:requesterId/accept',
   validate(requesterIdParam),
