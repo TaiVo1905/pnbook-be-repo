@@ -32,11 +32,12 @@ export const notificationsController = {
         statusCodes.NOT_FOUND,
         'Notification not found or already deleted'
       );
+    } else {
+      response = new ApiResponse(
+        statusCodes.SUCCESS,
+        'Notification marked as read'
+      );
     }
-    response = new ApiResponse(
-      statusCodes.SUCCESS,
-      'Notification marked as read'
-    );
     return res.status(response.statusCode).json(response);
   }),
 };

@@ -94,15 +94,17 @@ const messageRepository = () => {
             ROW_NUMBER() OVER (
               PARTITION BY
                 CASE
-                  WHEN sender_id = ${userId}::uuid THEN receiver_id
-                  ELSE sender_id
+                  WHEN m.sender_id = ${userId}::uuid THEN m.receiver_id
+                  ELSE m.sender_id
                 END
-              ORDER BY created_at DESC
+              ORDER BY m.created_at DESC
             ) AS rm
-          FROM messages
-          WHERE (sender_id = ${userId}::uuid OR receiver_id = ${userId}::uuid)
+          FROM messages m
+          WHERE (m.sender_id = ${userId}::uuid OR m.receiver_id = ${userId}::uuid)
         )
-        SELECT * FROM RankedMessages WHERE rm = 1
+        SELECT id, "senderId", "receiverId", content, "contentType", status, "createdAt"
+        FROM RankedMessages
+        WHERE rm = 1
       `,
     ]);
 

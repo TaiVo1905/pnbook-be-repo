@@ -40,19 +40,24 @@ const firestoreService = () => {
     content: string;
     targetDetails?: string;
   }) => {
-    const db = firebase.db();
-    await db
-      .collection('notifications')
-      .doc(notification.receiverId)
-      .set({
-        id: notification.id,
-        title: notification.title,
-        content: notification.content,
-        targetDetails: notification.targetDetails || null,
-        isRead: false,
-        createdAt: new Date().toISOString(),
-      });
-    return { triggered: true, notificationId: notification.id };
+    try {
+      const db = firebase.db();
+      await db
+        .collection('notifications')
+        .doc(notification.id)
+        .set({
+          id: notification.id,
+          receiverId: notification.receiverId,
+          title: notification.title,
+          content: notification.content,
+          targetDetails: notification.targetDetails || null,
+          isRead: false,
+          createdAt: new Date().toISOString(),
+        });
+      return { triggered: true, notificationId: notification.id };
+    } catch (_err: any) {
+      return { triggered: false, notificationId: notification.id };
+    }
   };
 
   return { triggerNewMessage, triggerNotification };
