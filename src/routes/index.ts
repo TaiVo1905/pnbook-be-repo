@@ -7,6 +7,7 @@ import postsRoutes from '@/features/posts/posts.route.js';
 import uploadsRoutes from '@/features/uploads/uploads.route.js';
 import usersRoutes from '@/features/users/users.route.js';
 import { Router } from 'express';
+import repliesRoutes from '@/features/replies/replies.route.js';
 
 const authRoute = Router();
 
@@ -15,11 +16,12 @@ authRoute.use('/', authRoutes);
 const protectedRoute = Router();
 
 protectedRoute.use('/', usersRoutes);
-protectedRoute.use('/', postsRoutes);
-protectedRoute.use('/', messagesRoutes);
-protectedRoute.use('/', commentsRoutes);
-protectedRoute.use('/', notificationsRoutes);
-protectedRoute.use('/', uploadsRoutes);
 protectedRoute.use('/', friendshipsRoutes);
+protectedRoute.use('/', postsRoutes);
+protectedRoute.use('/', commentsRoutes);
+protectedRoute.use('/', repliesRoutes);
+protectedRoute.use('/', notificationsRoutes);
+protectedRoute.use('/', messagesRoutes);
+protectedRoute.use('/', uploadsRoutes);
 
 export { authRoute, protectedRoute };
