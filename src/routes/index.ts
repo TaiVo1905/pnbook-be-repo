@@ -1,3 +1,4 @@
+import commentsRoutes from '@/features/comments/comments.route.js';
 import authRoutes from '@/features/auth/auth.route.js';
 import friendshipsRoutes from '@/features/friendships/friendships.route.js';
 import messagesRoutes from '@/features/messages/messages.route.js';
@@ -14,6 +15,7 @@ const protectedRoute = Router();
 
 protectedRoute.use('/', usersRoutes);
 protectedRoute.use('/', messagesRoutes);
+protectedRoute.use('/', commentsRoutes);
 protectedRoute.use('/', notificationsRoutes);
 protectedRoute.use('/', uploadsRoutes);
 protectedRoute.use('/', friendshipsRoutes);
