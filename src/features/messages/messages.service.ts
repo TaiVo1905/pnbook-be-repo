@@ -1,7 +1,11 @@
 import messageRepository from '@/shared/repositories/message.repository.js';
 import firestoreService from '@/infrastructure/firestore.service.js';
 import uploadsService from '@/features/uploads/uploads.service.js';
-import { ForbiddenError, NotFoundError } from '@/core/apiError.js';
+import {
+  BadRequestError,
+  ForbiddenError,
+  NotFoundError,
+} from '@/core/apiError.js';
 
 const messagesService = () => {
   const hydrateMessage = async (msg: any) => {
@@ -77,7 +81,7 @@ const messagesService = () => {
   const updateText = async (id: string, actorId: string, content: string) => {
     const msg = await messageRepository.getById(id);
     if (!msg) throw new NotFoundError('Message not found');
-    if (msg.deletedAt) throw new Error('Cannot edit deleted message');
+    if (msg.deletedAt) throw new ForbiddenError('Cannot edit deleted message');
     if (msg.senderId !== actorId)
       throw new ForbiddenError("Forbidden: cannot edit others' message");
     return await messageRepository.updateText(id, content);
@@ -86,7 +90,7 @@ const messagesService = () => {
   const remove = async (id: string, actorId: string) => {
     const msg = await messageRepository.getById(id);
     if (!msg) throw new NotFoundError('Message not found');
-    if (msg.deletedAt) throw new Error('Message already deleted');
+    if (msg.deletedAt) throw new BadRequestError('Message already deleted');
     if (msg.senderId !== actorId) {
       throw new ForbiddenError("Cannot delete others' message");
     }

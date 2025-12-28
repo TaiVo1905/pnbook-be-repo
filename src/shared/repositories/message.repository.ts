@@ -10,8 +10,10 @@ const messageRepository = () => {
     const [messages, totalItems] = await Promise.all([
       prisma.message.findMany({
         where: {
-          senderId,
-          receiverId,
+          OR: [
+            { senderId, receiverId },
+            { senderId: receiverId, receiverId: senderId },
+          ],
         },
         orderBy: { createdAt: 'asc' },
         skip: (page - 1) * limit,
@@ -19,8 +21,10 @@ const messageRepository = () => {
       }),
       prisma.message.count({
         where: {
-          senderId,
-          receiverId,
+          OR: [
+            { senderId, receiverId },
+            { senderId: receiverId, receiverId: senderId },
+          ],
         },
       }),
     ]);
@@ -67,25 +71,47 @@ const messageRepository = () => {
         where: { id: { in: otherUserIds } },
         select: { id: true, name: true, email: true, avatarUrl: true },
       }),
-      prisma.message.findMany({
-        where: {
-          OR: otherUserIds.map((otherId) => ({
-            OR: [
-              { senderId: otherId, receiverId: userId },
-              { senderId: userId, receiverId: otherId },
-            ],
-          })),
-        },
-        orderBy: { createdAt: 'desc' },
-        distinct: ['senderId', 'receiverId'],
-        take: otherUserIds.length,
-      }),
+      prisma.$queryRaw<
+        Array<{
+          id: string;
+          senderId: string;
+          receiverId: string;
+          content: string;
+          contentType: string;
+          status: string;
+          createdAt: Date;
+        }>
+      >`
+        WITH RankedMessages AS (
+          SELECT
+            m.id,
+            m.sender_id as "senderId",
+            m.receiver_id as "receiverId",
+            m.content,
+            m.content_type as "contentType",
+            m.status,
+            m.created_at as "createdAt",
+            ROW_NUMBER() OVER (
+              PARTITION BY
+                CASE
+                  WHEN sender_id = ${userId}::uuid THEN receiver_id
+                  ELSE sender_id
+                END
+              ORDER BY created_at DESC
+            ) AS rm
+          FROM messages
+          WHERE (sender_id = ${userId}::uuid OR receiver_id = ${userId}::uuid)
+        )
+        SELECT * FROM RankedMessages WHERE rm = 1
+      `,
     ]);
 
     const result = conversations.map((conv) => {
       const user = users.find((u) => u.id === conv.otherUserId);
       const lastMessage = lastMessages.find(
-        (msg) => msg.receiverId === conv.otherUserId
+        (msg) =>
+          (msg.senderId === userId && msg.receiverId === conv.otherUserId) ||
+          (msg.senderId === conv.otherUserId && msg.receiverId === userId)
       );
 
       return {

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { validate } from '@/middlewares/validate.middleware.js';
 import { messagesController } from './messages.controller.js';
-import { messageSchema } from './schemas/message.dto.js';
+import { messageSchema } from './schemas/message.schema.js';
 import { listConversationSchema } from './schemas/listConversation.schema.js';
 const messagesRoutes = Router();
 messagesRoutes.get('/conversations', messagesController.listConversations);

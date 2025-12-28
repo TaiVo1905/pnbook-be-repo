@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { validate } from '@/middlewares/validate.middleware.js';
 import { uploadsController } from './uploads.controller.js';
 import { presignedUrlSchema } from './schemas/presignedUrl.schema.js';
-import { limitedTimeUrlSchema } from './schemas/limitedTimeUrl.shema.js';
+import { limitedTimeUrlSchema } from './schemas/limitedTimeUrl.schema.js';
 
 const uploadsRoutes = Router();
 

@@ -28,16 +28,7 @@ const firestoreService = () => {
           { merge: true }
         );
       return { triggered: true, messageId: message.id };
-    } catch (err: any) {
-      const code = err?.code;
-      const details = err?.details;
-      const trackingId = err?.metadata?.get?.('x-debug-tracking-id')?.[0];
-      console.error('Firestore triggerNewMessage failed', {
-        code,
-        details,
-        trackingId,
-        err,
-      });
+    } catch (_err: any) {
       return { triggered: false, messageId: message.id };
     }
   };
