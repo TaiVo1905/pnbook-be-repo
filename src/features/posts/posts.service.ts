@@ -15,6 +15,10 @@ const postsService = () => {
       type: 'image' | 'video' | 'audio';
     }>
   ) => {
+    if (originalPostId && !(await postRepository.getById(originalPostId))) {
+      throw new NotFoundError('Original post not found');
+    }
+
     const post = await postRepository.create(posterId, content, originalPostId);
     if (attachments && attachments.length > 0) {
       await postAttachmentRepository.createMany(post.id, attachments);

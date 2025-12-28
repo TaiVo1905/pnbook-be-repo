@@ -9,6 +9,10 @@ const repliesService = () => {
     replierId: string,
     content: string
   ) => {
+    if (!(await commentRepository.getById(commentId))) {
+      throw new NotFoundError('Comment not found');
+    }
+
     const reply = await replyRepository.create(commentId, replierId, content);
 
     const comment = await commentRepository.getById(commentId);
