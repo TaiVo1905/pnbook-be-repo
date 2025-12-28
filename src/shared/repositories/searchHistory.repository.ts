@@ -7,6 +7,20 @@ const searchHistoryRepository = () => {
     keyword: string,
     tx: Prisma.TransactionClient = prisma
   ) => {
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+    const recentSearch = await tx.searchHistory.findFirst({
+      where: {
+        userId,
+        keyword,
+        createdAt: { gte: fiveMinutesAgo },
+        deletedAt: null,
+      },
+    });
+
+    if (recentSearch) {
+      return recentSearch;
+    }
+
     return await tx.searchHistory.create({
       data: { userId, keyword },
     });
@@ -25,9 +39,9 @@ const searchHistoryRepository = () => {
     return { histories, count };
   };
 
-  const deleteById = async (id: string) => {
-    return await prisma.searchHistory.update({
-      where: { id },
+  const deleteById = async (id: string, userId: string) => {
+    return await prisma.searchHistory.updateMany({
+      where: { id, userId, deletedAt: null },
       data: { deletedAt: new Date() },
     });
   };

@@ -17,7 +17,9 @@ const searchService = () => {
         limit,
         tx
       );
-      await searchHistoryRepository.create(userId, keyword, tx);
+      if (page === 1) {
+        await searchHistoryRepository.create(userId, keyword, tx);
+      }
       return { posts, count };
     });
 
@@ -37,7 +39,9 @@ const searchService = () => {
         limit,
         tx
       );
-      await searchHistoryRepository.create(userId, keyword, tx);
+      if (page === 1) {
+        await searchHistoryRepository.create(userId, keyword, tx);
+      }
       return { users, count };
     });
 

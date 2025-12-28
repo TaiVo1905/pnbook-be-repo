@@ -7,9 +7,10 @@ import searchService from './searches.service.js';
 
 export const searchesController = {
   searchPosts: catchAsync(async (req: Request, res: Response) => {
-    const keyword = req.query.keyword as string;
-    const page = Number(req.query.page || 1);
-    const limit = Number(req.query.limit || 20);
+    // Schema validation ensures these values exist and are valid
+    const keyword = String(req.query.keyword);
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 20;
     const { posts, count } = await searchService.searchPosts(
       req.user!.id,
       keyword,
@@ -25,9 +26,9 @@ export const searchesController = {
   }),
 
   searchUsers: catchAsync(async (req: Request, res: Response) => {
-    const keyword = req.query.keyword as string;
-    const page = Number(req.query.page || 1);
-    const limit = Number(req.query.limit || 20);
+    const keyword = String(req.query.keyword);
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 20;
     const { users, count } = await searchService.searchUsers(
       req.user!.id,
       keyword,
@@ -64,7 +65,16 @@ export const searchesController = {
 
   deleteHistory: catchAsync(async (req: Request, res: Response) => {
     const { id } = req.params;
-    await searchHistoryRepository.deleteById(id);
+    const result = await searchHistoryRepository.deleteById(id, req.user!.id);
+
+    if (result.count === 0) {
+      const response = new ApiResponse(
+        statusCodes.NOT_FOUND,
+        'Search history not found or unauthorized'
+      );
+      return res.status(response.statusCode).json(response);
+    }
+
     const response = new ApiResponse(
       statusCodes.SUCCESS,
       'Search history deleted'

@@ -132,6 +132,7 @@ const postRepository = () => {
           deletedAt: null,
           content: {
             contains: keyword,
+            mode: 'insensitive',
           },
         },
         include: { attachments: { where: { deletedAt: null } } },
@@ -144,6 +145,7 @@ const postRepository = () => {
           deletedAt: null,
           content: {
             contains: keyword,
+            mode: 'insensitive',
           },
         },
       }),
