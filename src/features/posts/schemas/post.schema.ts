@@ -10,6 +10,7 @@ export const postSchema = z.object({
           type: z.enum(['image', 'video', 'audio']),
         })
       )
+      .max(10)
       .optional(),
   }),
 });

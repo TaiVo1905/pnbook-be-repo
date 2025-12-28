@@ -101,10 +101,18 @@ const userRepository = () => {
 
   const getFriendIds = async (userId: string) => {
     const friends = await prisma.friendList.findMany({
-      where: { userId, status: 'accepted', deletedAt: null },
-      select: { friendId: true },
+      where: {
+        OR: [{ userId: userId }, { friendId: userId }],
+        status: 'accepted',
+        deletedAt: null,
+      },
+      select: { friendId: true, userId: true },
     });
-    return friends.map((f) => f.friendId);
+    return [
+      ...new Set(
+        friends.map((f) => (f.userId === userId ? f.friendId : f.userId))
+      ),
+    ];
   };
 
   return {

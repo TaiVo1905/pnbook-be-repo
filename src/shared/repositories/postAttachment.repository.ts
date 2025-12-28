@@ -13,12 +13,15 @@ const postAttachmentRepository = () => {
 
   const createMany = async (
     postId: string,
-    attachments: Array<{ key: string; type: 'image' | 'video' | 'audio' }>
+    attachments: Array<{
+      attachmentUrl: string;
+      type: 'image' | 'video' | 'audio';
+    }>
   ) => {
     return await prisma.postAttachment.createMany({
       data: attachments.map((a) => ({
         postId,
-        attachmentUrl: a.key,
+        attachmentUrl: a.attachmentUrl,
         attachmentType: a.type,
       })),
     });
