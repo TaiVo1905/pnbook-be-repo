@@ -4,6 +4,7 @@
     "moduleResolution": "nodenext",
     "target": "esnext",
     "outDir": "./dist",
+    "rootDir": "./src",
 
     "types": ["node"],
 
@@ -20,5 +21,6 @@
     "paths": {
       "@/*": ["src/*"]
     }
-  }
+  },
+  "exclude": ["prisma.config.ts"]
 }
