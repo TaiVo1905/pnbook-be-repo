@@ -5,11 +5,15 @@
   "main": "src/server.ts",
   "scripts": {
     "dev": "nodemon --watch src --exec tsx src/server.ts",
-    "start": "tsx src/server.ts",
+    "start": "npx prisma migrate deploy && node dist/index.js",
+    "build": "npx prisma generate && tsc",
     "prepare": "husky",
     "test": "jest",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --ext .ts"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   },
   "lint-staged": {
     "*.{js,ts}": [
