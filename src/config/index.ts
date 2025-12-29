@@ -27,6 +27,6 @@ export const config = {
     secret: process.env.JWT_SECRET,
   },
   digitalOcean: {
-    dbCert: process.env.DB_CA_CERT,
+    dbCert: (process.env.DB_CA_CERT as string).replace(/\\n/g, '\n'),
   },
 };
