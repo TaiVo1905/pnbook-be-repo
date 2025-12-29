@@ -31,4 +31,8 @@ export const tags = [
     name: 'Searches',
     description: 'Search users by name or email',
   },
+  {
+    name: 'Uploads',
+    description: 'Upload files such as images and videos',
+  },
 ];

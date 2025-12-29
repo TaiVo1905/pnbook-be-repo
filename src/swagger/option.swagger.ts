@@ -7,6 +7,7 @@ import { notifcationSchemas } from './schemas/notification.schema.js';
 import { postSchemas } from './schemas/post.schema.js';
 import { repliesSchemas } from './schemas/reply.schema.js';
 import { searchSchemas } from './schemas/search.schema.js';
+import { uploadSchemas } from './schemas/upload.schema.js';
 
 const option = {
   definition: {
@@ -40,6 +41,7 @@ const option = {
         ...postSchemas,
         ...repliesSchemas,
         ...searchSchemas,
+        ...uploadSchemas,
       },
     },
     security: [{ BearerAuth: [] }],
