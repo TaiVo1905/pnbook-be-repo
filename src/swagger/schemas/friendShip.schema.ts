@@ -1,4 +1,4 @@
-export const friendShipSchema = {
+export const friendShipSchemas = {
   FriendShip: {
     type: 'object',
     properties: {

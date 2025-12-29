@@ -1,5 +1,7 @@
 import { authSchemas } from './schemas/auth.schema.js';
 import { commentSchemas } from './schemas/comment.schema.js';
+import { friendShipSchemas } from './schemas/friendShip.schema.js';
+import { messageSchemas } from './schemas/message.schema.js';
 import { tags } from './tag.swagger.js';
 
 const option = {
@@ -28,6 +30,8 @@ const option = {
       schemas: {
         ...authSchemas,
         ...commentSchemas,
+        ...messageSchemas,
+        ...friendShipSchemas,
       },
     },
     security: [{ BearerAuth: [] }],
