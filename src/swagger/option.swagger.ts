@@ -1,4 +1,5 @@
 import { authSchemas } from './schemas/auth.schema.js';
+import { commentSchemas } from './schemas/comment.schema.js';
 import { tags } from './tag.swagger.js';
 
 const option = {
@@ -26,6 +27,7 @@ const option = {
       },
       schemas: {
         ...authSchemas,
+        ...commentSchemas,
       },
     },
     security: [{ BearerAuth: [] }],
