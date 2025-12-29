@@ -26,4 +26,7 @@ export const config = {
   jwt: {
     secret: process.env.JWT_SECRET,
   },
+  digitalOcean: {
+    dbCert: process.env.DB_CA_CERT,
+  },
 };
