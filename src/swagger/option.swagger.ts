@@ -5,6 +5,7 @@ import { messageSchemas } from './schemas/message.schema.js';
 import { tags } from './tag.swagger.js';
 import { notifcationSchemas } from './schemas/notification.schema.js';
 import { postSchemas } from './schemas/post.schema.js';
+import { repliesSchemas } from './schemas/reply.schema.js';
 
 const option = {
   definition: {
@@ -36,6 +37,7 @@ const option = {
         ...friendShipSchemas,
         ...notifcationSchemas,
         ...postSchemas,
+        ...repliesSchemas,
       },
     },
     security: [{ BearerAuth: [] }],

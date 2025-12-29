@@ -23,4 +23,8 @@ export const tags = [
     name: 'Notifications',
     description: 'List and mark notifications as read',
   },
+  {
+    name: 'Replies',
+    description: 'Create, update, delete replies and list replies of comments',
+  },
 ];
