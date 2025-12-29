@@ -6,6 +6,7 @@ import { tags } from './tag.swagger.js';
 import { notifcationSchemas } from './schemas/notification.schema.js';
 import { postSchemas } from './schemas/post.schema.js';
 import { repliesSchemas } from './schemas/reply.schema.js';
+import { searchSchemas } from './schemas/search.schema.js';
 
 const option = {
   definition: {
@@ -38,6 +39,7 @@ const option = {
         ...notifcationSchemas,
         ...postSchemas,
         ...repliesSchemas,
+        ...searchSchemas,
       },
     },
     security: [{ BearerAuth: [] }],

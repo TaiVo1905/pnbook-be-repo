@@ -27,4 +27,8 @@ export const tags = [
     name: 'Replies',
     description: 'Create, update, delete replies and list replies of comments',
   },
+  {
+    name: 'Searches',
+    description: 'Search users by name or email',
+  },
 ];
