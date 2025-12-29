@@ -3,6 +3,7 @@ import { commentSchemas } from './schemas/comment.schema.js';
 import { friendShipSchemas } from './schemas/friendShip.schema.js';
 import { messageSchemas } from './schemas/message.schema.js';
 import { tags } from './tag.swagger.js';
+import { notifcationSchemas } from './schemas/notification.schema.js';
 
 const option = {
   definition: {
@@ -32,6 +33,7 @@ const option = {
         ...commentSchemas,
         ...messageSchemas,
         ...friendShipSchemas,
+        ...notifcationSchemas,
       },
     },
     security: [{ BearerAuth: [] }],
