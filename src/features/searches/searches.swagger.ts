@@ -98,6 +98,7 @@
  *           example: 1
  *       - name: limit
  *         in: query
+ *         schema:
  *           type: integer
  *           example: 20
  *     responses:

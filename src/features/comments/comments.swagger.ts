@@ -2,7 +2,7 @@
  * @swagger
  * /comments:
  *   post:
- *     tags: [Comment]
+ *     tags: [Comments]
  *     summary: Create a new comment
  *     requestBody:
  *       required: true
@@ -23,7 +23,7 @@
  * @swagger
  * /posts/{id}/comments:
  *   get:
- *     tags: [Comment]
+ *     tags: [Comments]
  *     summary: Get comments by post ID
  *     parameters:
  *       - in: path
@@ -47,7 +47,7 @@
  * @swagger
  * /comments/{id}:
  *   patch:
- *     tags: [Comment]
+ *     tags: [Comments]
  *     summary: Update a comment
  *     parameters:
  *       - in: path
@@ -75,7 +75,7 @@
  * @swagger
  * /comments/{id}:
  *   delete:
- *     tags: [Comment]
+ *     tags: [Comments]
  *     summary: Delete a comment
  *     parameters:
  *       - in: path

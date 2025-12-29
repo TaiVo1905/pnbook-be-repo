@@ -35,4 +35,8 @@ export const tags = [
     name: 'Uploads',
     description: 'Upload files such as images and videos',
   },
+  {
+    name: 'Users',
+    description: 'Get and update user profile information',
+  },
 ];
