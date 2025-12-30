@@ -7,7 +7,7 @@
  *     security:
  *       - BearerAuth: []
  *     parameters:
- *       - name: query
+ *       - name: keyword
  *         in: query
  *         required: true
  *         schema:
@@ -17,27 +17,19 @@
  *         in: query
  *         schema:
  *           type: integer
- *           example: 1
+ *           default: 1
  *       - name: limit
  *         in: query
  *         schema:
  *           type: integer
- *           example: 20
+ *           default: 20
  *     responses:
  *       200:
  *         description: List of posts matching search
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 list:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Post'
- *                 count:
- *                   type: integer
- *                   example: 10
+ *               $ref: '#/components/schemas/PostsListResponse'
  */
 
 /**
@@ -49,7 +41,7 @@
  *     security:
  *       - BearerAuth: []
  *     parameters:
- *       - name: query
+ *       - name: keyword
  *         in: query
  *         required: true
  *         schema:
@@ -59,27 +51,19 @@
  *         in: query
  *         schema:
  *           type: integer
- *           example: 1
+ *           default: 1
  *       - name: limit
  *         in: query
  *         schema:
  *           type: integer
- *           example: 20
+ *           default: 20
  *     responses:
  *       200:
  *         description: List of users matching search
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 list:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/User'
- *                 count:
- *                   type: integer
- *                   example: 10
+ *               $ref: '#/components/schemas/UsersListResponse'
  */
 
 /**
@@ -95,27 +79,19 @@
  *         in: query
  *         schema:
  *           type: integer
- *           example: 1
+ *           default: 1
  *       - name: limit
  *         in: query
  *         schema:
  *           type: integer
- *           example: 20
+ *           default: 20
  *     responses:
  *       200:
  *         description: List of search history
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 list:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/SearchHistory'
- *                 count:
- *                   type: integer
- *                   example: 10
+ *               $ref: '#/components/schemas/SearchHistoryListResponse'
  */
 
 /**
@@ -135,6 +111,12 @@
  *     responses:
  *       200:
  *         description: Search history deleted
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/MessageResponse'
+ *       404:
+ *         description: Search history not found
  *         content:
  *           application/json:
  *             schema:

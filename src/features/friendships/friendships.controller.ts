@@ -89,7 +89,7 @@ export const friendshipsController = {
   updateStatus: catchAsync(async (req: Request, res: Response) => {
     const friendship = await friendshipsService.updateStatus(
       req.user!.id,
-      req.params.id,
+      req.params.friendId,
       req.body.status
     );
     const response = ApiResponse.success(
@@ -100,7 +100,7 @@ export const friendshipsController = {
   }),
 
   remove: catchAsync(async (req: Request, res: Response) => {
-    await friendshipsService.remove(req.user!.id, req.params.id);
+    await friendshipsService.remove(req.user!.id, req.params.friendId);
     const response = new ApiResponse(statusCodes.SUCCESS, 'Friendship deleted');
     return res.status(response.statusCode).json(response);
   }),

@@ -14,6 +14,12 @@
  *     responses:
  *       200:
  *         description: User signed in with Google successfully
+ *         headers:
+ *           Set-Cookie:
+ *             description: HttpOnly cookies for accessToken (1h) and refreshToken (7d)
+ *             schema:
+ *               type: string
+ *               example: accessToken=jwt; Path=/; HttpOnly; SameSite=Strict; Secure
  *         content:
  *           application/json:
  *             schema:
@@ -38,7 +44,7 @@
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/AuthResponse'
+ *               $ref: '#/components/schemas/SignUpResponse'
  */
 
 /**
@@ -56,6 +62,12 @@
  *     responses:
  *       200:
  *         description: User signed in successfully
+ *         headers:
+ *           Set-Cookie:
+ *             description: HttpOnly cookies for accessToken (1h) and refreshToken (7d)
+ *             schema:
+ *               type: string
+ *               example: accessToken=jwt; Path=/; HttpOnly; SameSite=Strict; Secure
  *         content:
  *           application/json:
  *             schema:

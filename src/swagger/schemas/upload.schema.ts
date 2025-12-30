@@ -1,13 +1,13 @@
 export const uploadSchemas = {
   PresignedUrlRequest: {
     type: 'object',
-    required: ['fileName', 'fileType'],
+    required: ['filename', 'mimeType'],
     properties: {
-      fileName: {
+      filename: {
         type: 'string',
         example: 'image.png',
       },
-      fileType: {
+      mimeType: {
         type: 'string',
         example: 'image/png',
       },
@@ -16,51 +16,70 @@ export const uploadSchemas = {
   PresignedUrlResponse: {
     type: 'object',
     properties: {
-      url: {
-        type: 'string',
-        example:
-          'https://example-bucket.s3.amazonaws.com/image.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-',
+      statusCode: {
+        type: 'number',
+        example: 200,
       },
-      fields: {
+      message: {
+        type: 'string',
+        example: 'Upload URL created',
+      },
+      data: {
         type: 'object',
-        example: {
-          key: 'image.png',
-          acl: 'public-read',
-          'Content-Type': 'image/png',
-          'X-Amz-Algorithm': 'AWS4-HMAC-SHA256',
-          'X-Amz-Credential': 'EXAMPLECREDENTIAL',
-          'X-Amz-Date': '20240601T000000Z',
-          'X-Amz-Expires': '3600',
-          'X-Amz-Signature': 'EXAMPLESIGNATURE',
+        properties: {
+          key: {
+            type: 'string',
+            example: 'uploads/1234567890-image.png',
+          },
+          url: {
+            type: 'string',
+            example:
+              'https://example-bucket.s3.amazonaws.com/uploads/1234567890-image.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&...',
+          },
         },
+      },
+      timestamp: {
+        type: 'string',
+        format: 'date-time',
+        example: '2025-12-30T04:40:26.830Z',
       },
     },
   },
   LimitedTimeUrlRequest: {
     type: 'object',
-    required: ['fileKey', 'expiresIn'],
+    required: ['key'],
     properties: {
-      fileKey: {
+      key: {
         type: 'string',
-        example: 'image.png',
-      },
-      expiresIn: {
-        type: 'integer',
-        example: 3600,
+        example: 'uploads/1234567890-image.png',
       },
     },
   },
   LimitedTimeUrlResponse: {
     type: 'object',
     properties: {
-      url: {
-        type: 'string',
-        example:
-          'https://example-bucket.s3.amazonaws.com/image.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-',
+      statusCode: {
+        type: 'number',
+        example: 200,
       },
-      expiresAt: {
+      message: {
         type: 'string',
-        example: '2024-06-01T01:00:00.000Z',
+        example: 'Limited Time URL fetched',
+      },
+      data: {
+        type: 'object',
+        properties: {
+          url: {
+            type: 'string',
+            example:
+              'https://example-bucket.s3.amazonaws.com/uploads/1234567890-image.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&...',
+          },
+        },
+      },
+      timestamp: {
+        type: 'string',
+        format: 'date-time',
+        example: '2025-12-30T04:40:26.830Z',
       },
     },
   },

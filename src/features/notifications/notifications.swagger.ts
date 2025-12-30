@@ -11,27 +11,19 @@
  *         in: query
  *         schema:
  *           type: integer
- *           example: 1
+ *           default: 1
  *       - name: limit
  *         in: query
  *         schema:
  *           type: integer
- *           example: 20
+ *           default: 20
  *     responses:
  *       200:
  *         description: List of notifications
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 list:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Notification'
- *                 count:
- *                   type: integer
- *                   example: 50
+ *               $ref: '#/components/schemas/NotificationsListResponse'
  */
 
 /**
@@ -51,6 +43,12 @@
  *     responses:
  *       200:
  *         description: Notification marked as read
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/NotificationResponse'
+ *       404:
+ *         description: Notification not found
  *         content:
  *           application/json:
  *             schema:

@@ -18,15 +18,15 @@
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/User'
+ *               $ref: '#/components/schemas/UserResponse'
  */
 
 /**
  * @swagger
- * /users/{id}:
+ * /users/me:
  *   patch:
  *     tags: [Users]
- *     summary: Update user information by ID
+ *     summary: Update user information
  *     security:
  *       - BearerAuth: []
  *     parameters:
@@ -47,19 +47,19 @@
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/User'
+ *               $ref: '#/components/schemas/UserResponse'
  */
 
 /**
  * @swagger
- * /users/search:
+ * /search:
  *   get:
  *     tags: [Users]
- *     summary: Search users by query
+ *     summary: Search users by keyword
  *     security:
  *       - BearerAuth: []
  *     parameters:
- *       - name: query
+ *       - name: keyword
  *         in: query
  *         required: true
  *         schema:
@@ -69,25 +69,17 @@
  *         in: query
  *         schema:
  *           type: integer
- *           example: 1
+ *           default: 1
  *       - name: limit
  *         in: query
  *         schema:
  *           type: integer
- *           example: 20
+ *           default: 20
  *     responses:
  *       200:
  *         description: List of users matching search
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 list:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/User'
- *                 count:
- *                   type: integer
- *                   example: 10
+ *               $ref: '#/components/schemas/UsersListResponse'
  */

@@ -1,9 +1,9 @@
 import { authSchemas } from './schemas/auth.schema.js';
 import { commentSchemas } from './schemas/comment.schema.js';
-import { friendShipSchemas } from './schemas/friendShip.schema.js';
+import { friendshipSchemas } from './schemas/friendship.schema.js';
 import { messageSchemas } from './schemas/message.schema.js';
 import { tags } from './tag.swagger.js';
-import { notifcationSchemas } from './schemas/notification.schema.js';
+import { notificationSchemas } from './schemas/notification.schema.js';
 import { postSchemas } from './schemas/post.schema.js';
 import { repliesSchemas } from './schemas/reply.schema.js';
 import { searchSchemas } from './schemas/search.schema.js';
@@ -20,8 +20,14 @@ const option = {
     },
     servers: [
       {
-        url: 'http://localhost:5001',
-        description: 'Local server',
+        url:
+          process.env.NODE_ENV === 'production'
+            ? 'https://pn-book-bj6tn.ondigitalocean.app/api/v1'
+            : 'http://localhost:5001/api/v1',
+        description:
+          process.env.NODE_ENV === 'production'
+            ? 'Production server'
+            : 'Local server',
       },
     ],
     tags,
@@ -37,8 +43,8 @@ const option = {
         ...authSchemas,
         ...commentSchemas,
         ...messageSchemas,
-        ...friendShipSchemas,
-        ...notifcationSchemas,
+        ...friendshipSchemas,
+        ...notificationSchemas,
         ...postSchemas,
         ...repliesSchemas,
         ...searchSchemas,

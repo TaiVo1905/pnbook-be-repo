@@ -6,21 +6,24 @@
  *     summary: Get list of conversations
  *     security:
  *       - BearerAuth: []
+ *     parameters:
+ *       - name: page
+ *         in: query
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - name: limit
+ *         in: query
+ *         schema:
+ *           type: integer
+ *           default: 20
  *     responses:
  *       200:
  *         description: List of conversations
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 list:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Conversation'
- *                 count:
- *                   type: integer
- *                   example: 10
+ *               $ref: '#/components/schemas/ConversationsListResponse'
  */
 
 /**
@@ -32,37 +35,29 @@
  *     security:
  *       - BearerAuth: []
  *     parameters:
- *       - name: conversationId
+ *       - name: receiverId
  *         in: query
  *         required: true
  *         schema:
  *           type: string
- *           example: conversation-123
+ *           example: user-123
  *       - name: page
  *         in: query
  *         schema:
  *           type: integer
- *           example: 1
+ *           default: 1
  *       - name: limit
  *         in: query
  *         schema:
  *           type: integer
- *           example: 20
+ *           default: 50
  *     responses:
  *       200:
  *         description: List of messages
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 list:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Message'
- *                 count:
- *                   type: integer
- *                   example: 50
+ *               $ref: '#/components/schemas/MessagesListResponse'
  */
 
 /**
@@ -85,7 +80,7 @@
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Message'
+ *               $ref: '#/components/schemas/MessageResponse'
  */
 
 /**
@@ -114,7 +109,7 @@
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Message'
+ *               $ref: '#/components/schemas/MessageResponse'
  */
 
 /**
@@ -137,5 +132,5 @@
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/MessageResponse'
+ *               $ref: '#/components/schemas/DeleteMessageResponse'
  */

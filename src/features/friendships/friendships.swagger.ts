@@ -11,12 +11,12 @@
  *         in: query
  *         schema:
  *           type: integer
- *           example: 1
+ *           default: 1
  *       - name: limit
  *         in: query
  *         schema:
  *           type: integer
- *           example: 20
+ *           default: 20
  *     responses:
  *       200:
  *         description: List of my friends
@@ -44,12 +44,12 @@
  *         in: query
  *         schema:
  *           type: integer
- *           example: 1
+ *           default: 1
  *       - name: limit
  *         in: query
  *         schema:
  *           type: integer
- *           example: 20
+ *           default: 20
  *     responses:
  *       200:
  *         description: List of user's friends
@@ -72,12 +72,12 @@
  *         in: query
  *         schema:
  *           type: integer
- *           example: 1
+ *           default: 1
  *       - name: limit
  *         in: query
  *         schema:
  *           type: integer
- *           example: 20
+ *           default: 20
  *     responses:
  *       200:
  *         description: List of friend requests
@@ -107,59 +107,7 @@
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/FriendShip'
- */
-
-/**
- * @swagger
- * /friendships/{friendId}:
- *   patch:
- *     tags: [Friendships]
- *     summary: Update friendship status
- *     security:
- *       - BearerAuth: []
- *     parameters:
- *       - name: friendId
- *         in: path
- *         required: true
- *         schema:
- *           type: string
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/UpdateFriendshipBody'
- *     responses:
- *       200:
- *         description: Friendship updated successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/FriendShip'
- */
-
-/**
- * @swagger
- * /friendships/{friendId}:
- *   delete:
- *     tags: [Friendships]
- *     summary: Delete friendship
- *     security:
- *       - BearerAuth: []
- *     parameters:
- *       - name: friendId
- *         in: path
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Friendship deleted successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/DeleteFriendshipResponse'
+ *               $ref: '#/components/schemas/FriendshipResponse'
  */
 
 /**
@@ -202,6 +150,58 @@
  *     responses:
  *       200:
  *         description: Friend request rejected
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/MessageResponse'
+ */
+
+/**
+ * @swagger
+ * /friendships/{friendId}:
+ *   patch:
+ *     tags: [Friendships]
+ *     summary: Update friendship status
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - name: friendId
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UpdateFriendshipBody'
+ *     responses:
+ *       200:
+ *         description: Friendship updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/FriendshipResponse'
+ */
+
+/**
+ * @swagger
+ * /friendships/{friendId}:
+ *   delete:
+ *     tags: [Friendships]
+ *     summary: Delete friendship
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - name: friendId
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Friendship deleted successfully
  *         content:
  *           application/json:
  *             schema:

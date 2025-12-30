@@ -18,84 +18,7 @@
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Post'
- */
-
-/**
- * @swagger
- * /users/{id}/posts:
- *   get:
- *     tags: [Posts]
- *     summary: Get posts of a user
- *     security:
- *       - BearerAuth: []
- *     parameters:
- *       - name: id
- *         in: path
- *         required: true
- *         schema:
- *           type: string
- *       - name: page
- *         in: query
- *         schema:
- *           type: integer
- *           example: 1
- *       - name: limit
- *         in: query
- *         schema:
- *           type: integer
- *           example: 20
- *     responses:
- *       200:
- *         description: List of posts
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 list:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Post'
- *                 count:
- *                   type: integer
- *                   example: 50
- */
-
-/**
- * @swagger
- * /feeds:
- *   get:
- *     tags: [Posts]
- *     summary: Get feed posts
- *     security:
- *       - BearerAuth: []
- *     parameters:
- *       - name: page
- *         in: query
- *         schema:
- *           type: integer
- *           example: 1
- *       - name: limit
- *         in: query
- *         schema:
- *           type: integer
- *           example: 20
- *     responses:
- *       200:
- *         description: Feed posts
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 list:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Post'
- *                 count:
- *                   type: integer
- *                   example: 100
+ *               $ref: '#/components/schemas/PostResponse'
  */
 
 /**
@@ -118,7 +41,120 @@
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Post'
+ *               $ref: '#/components/schemas/PostResponse'
+ */
+
+/**
+ * @swagger
+ * /users/{id}/posts:
+ *   get:
+ *     tags: [Posts]
+ *     summary: Get posts of a user
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - name: page
+ *         in: query
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - name: limit
+ *         in: query
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *     responses:
+ *       200:
+ *         description: List of posts
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/PostsListResponse'
+ */
+
+/**
+ * @swagger
+ * /feeds:
+ *   get:
+ *     tags: [Posts]
+ *     summary: Get feed posts
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - name: page
+ *         in: query
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - name: limit
+ *         in: query
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *     responses:
+ *       200:
+ *         description: Feed posts
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/PostsListResponse'
+ */
+
+/**
+ * @swagger
+ * /posts/{id}:
+ *   patch:
+ *     tags: [Posts]
+ *     summary: Update a post
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UpdatePostBody'
+ *     responses:
+ *       200:
+ *         description: Post updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/PostResponse'
+ */
+
+/**
+ * @swagger
+ * /posts/{id}:
+ *   delete:
+ *     tags: [Posts]
+ *     summary: Delete a post
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Post deleted
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/MessageResponse'
  */
 
 /**
@@ -141,15 +177,7 @@
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 list:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Reaction'
- *                 count:
- *                   type: integer
- *                   example: 10
+ *               $ref: '#/components/schemas/ReactionsListResponse'
  */
 
 /**
@@ -166,19 +194,13 @@
  *         required: true
  *         schema:
  *           type: string
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/ReactBody'
  *     responses:
  *       201:
  *         description: Reaction added
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Reaction'
+ *               $ref: '#/components/schemas/ReactionResponse'
  */
 
 /**
@@ -202,56 +224,4 @@
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ReactionResponse'
- */
-
-/**
- * @swagger
- * /posts/{id}:
- *   patch:
- *     tags: [Posts]
- *     summary: Update a post
- *     security:
- *       - BearerAuth: []
- *     parameters:
- *       - name: id
- *         in: path
- *         required: true
- *         schema:
- *           type: string
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/PostBody'
- *     responses:
- *       200:
- *         description: Post updated
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Post'
- */
-
-/**
- * @swagger
- * /posts/{id}:
- *   delete:
- *     tags: [Posts]
- *     summary: Delete a post
- *     security:
- *       - BearerAuth: []
- *     parameters:
- *       - name: id
- *         in: path
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Post deleted
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/PostResponse'
  */

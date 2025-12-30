@@ -7,7 +7,6 @@ import searchService from './searches.service.js';
 
 export const searchesController = {
   searchPosts: catchAsync(async (req: Request, res: Response) => {
-    // Schema validation ensures these values exist and are valid
     const keyword = String(req.query.keyword);
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 20;

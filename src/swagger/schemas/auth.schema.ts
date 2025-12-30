@@ -9,10 +9,12 @@ export const authSchemas = {
       },
       email: {
         type: 'string',
-        example: 'nguyendat@example.com',
+        format: 'email',
+        example: 'nguyendat@student.passerellesnumeriques.org',
       },
       password: {
         type: 'string',
+        minLength: 8,
         example: '123456789',
       },
       passwordConfirmation: {
@@ -23,15 +25,12 @@ export const authSchemas = {
   },
   SignInRequest: {
     type: 'object',
-    required: ['name', 'email', 'password'],
+    required: ['email', 'password'],
     properties: {
-      name: {
-        type: 'string',
-        example: 'Nguyendat',
-      },
       email: {
         type: 'string',
-        example: 'nguyendat@example.com',
+        format: 'email',
+        example: 'nguyendat@student.passerellesnumeriques.org',
       },
       password: {
         type: 'string',
@@ -52,13 +51,36 @@ export const authSchemas = {
   AuthResponse: {
     type: 'object',
     properties: {
-      accessToken: {
-        type: 'string',
-        example: 'access-token-example',
+      statusCode: {
+        type: 'number',
+        example: 200,
       },
-      refreshToken: {
+      message: {
         type: 'string',
-        example: 'refresh-token-example',
+        example: 'User signed in successfully',
+      },
+      timestamp: {
+        type: 'string',
+        format: 'date-time',
+        example: '2025-12-30T04:40:26.830Z',
+      },
+    },
+  },
+  SignUpResponse: {
+    type: 'object',
+    properties: {
+      statusCode: {
+        type: 'number',
+        example: 201,
+      },
+      message: {
+        type: 'string',
+        example: 'User registered successfully',
+      },
+      timestamp: {
+        type: 'string',
+        format: 'date-time',
+        example: '2025-12-30T04:40:26.830Z',
       },
     },
   },

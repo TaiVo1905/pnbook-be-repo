@@ -1,31 +1,23 @@
-export const notificationSchemas = {
-  Notification: {
+export const friendshipSchemas = {
+  Friendship: {
     type: 'object',
     properties: {
       id: {
         type: 'string',
-        example: 'notification-123',
+        example: 'friendship-123',
       },
-      receiverId: {
+      requesterId: {
         type: 'string',
         example: 'user-456',
       },
-      title: {
+      addresseeId: {
         type: 'string',
-        example: 'New Message',
+        example: 'user-789',
       },
-      content: {
+      status: {
         type: 'string',
-        example: 'You have a new message',
-      },
-      targetDetails: {
-        type: 'string',
-        nullable: true,
-        example: null,
-      },
-      isRead: {
-        type: 'boolean',
-        example: false,
+        enum: ['accepted', 'block'],
+        example: 'accepted',
       },
       createdAt: {
         type: 'string',
@@ -34,7 +26,28 @@ export const notificationSchemas = {
       },
     },
   },
-  NotificationsListResponse: {
+  FriendshipResponse: {
+    type: 'object',
+    properties: {
+      statusCode: {
+        type: 'number',
+        example: 201,
+      },
+      message: {
+        type: 'string',
+        example: 'Friend request sent',
+      },
+      data: {
+        $ref: '#/components/schemas/FriendShip',
+      },
+      timestamp: {
+        type: 'string',
+        format: 'date-time',
+        example: '2025-12-30T04:40:26.830Z',
+      },
+    },
+  },
+  FriendListResponse: {
     type: 'object',
     properties: {
       statusCode: {
@@ -43,12 +56,12 @@ export const notificationSchemas = {
       },
       message: {
         type: 'string',
-        example: 'Notifications fetched',
+        example: 'Friends fetched',
       },
       data: {
         type: 'array',
         items: {
-          $ref: '#/components/schemas/Notification',
+          $ref: '#/components/schemas/FriendShip',
         },
       },
       meta: {
@@ -64,11 +77,11 @@ export const notificationSchemas = {
           },
           totalItems: {
             type: 'integer',
-            example: 100,
+            example: 50,
           },
           totalPages: {
             type: 'integer',
-            example: 5,
+            example: 3,
           },
         },
       },
@@ -79,7 +92,28 @@ export const notificationSchemas = {
       },
     },
   },
-  NotificationResponse: {
+  SendFriendRequestBody: {
+    type: 'object',
+    required: ['addresseeId'],
+    properties: {
+      addresseeId: {
+        type: 'string',
+        example: 'user-789',
+      },
+    },
+  },
+  UpdateFriendshipBody: {
+    type: 'object',
+    required: ['status'],
+    properties: {
+      status: {
+        type: 'string',
+        enum: ['accepted', 'block'],
+        example: 'block',
+      },
+    },
+  },
+  MessageResponse: {
     type: 'object',
     properties: {
       statusCode: {
@@ -88,7 +122,7 @@ export const notificationSchemas = {
       },
       message: {
         type: 'string',
-        example: 'Notification marked as read',
+        example: 'Friend request accepted',
       },
       timestamp: {
         type: 'string',

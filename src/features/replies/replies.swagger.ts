@@ -13,12 +13,12 @@
  *           schema:
  *             $ref: '#/components/schemas/CreateReplyBody'
  *     responses:
- *       201:
+ *       200:
  *         description: Reply created successfully
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Reply'
+ *               $ref: '#/components/schemas/ReplyResponse'
  */
 
 /**
@@ -39,27 +39,19 @@
  *         in: query
  *         schema:
  *           type: integer
- *           example: 1
+ *           default: 1
  *       - name: limit
  *         in: query
  *         schema:
  *           type: integer
- *           example: 20
+ *           default: 20
  *     responses:
  *       200:
  *         description: List of replies
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 list:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Reply'
- *                 count:
- *                   type: integer
- *                   example: 10
+ *               $ref: '#/components/schemas/RepliesListResponse'
  */
 
 /**
@@ -88,7 +80,7 @@
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Reply'
+ *               $ref: '#/components/schemas/ReplyResponse'
  */
 
 /**
@@ -111,5 +103,5 @@
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ReplyResponse'
+ *               $ref: '#/components/schemas/MessageResponse'
  */
