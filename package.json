@@ -5,11 +5,15 @@
   "main": "src/server.ts",
   "scripts": {
     "dev": "nodemon --watch src --exec tsx src/server.ts",
-    "start": "tsx src/server.ts",
+    "start": "npx prisma migrate deploy && ls -R dist && node dist/server.js",
+    "build": "npm install --include=dev && npx prisma generate && tsc && tsc-alias",
     "prepare": "husky",
     "test": "jest",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --ext .ts"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   },
   "lint-staged": {
     "*.{js,ts}": [
@@ -28,6 +32,7 @@
     "@prisma/client": "^7.1.0",
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "firebase-admin": "^13.6.0",
@@ -45,6 +50,7 @@
     "@commitlint/config-conventional": "^20.2.0",
     "@eslint/js": "^9.39.2",
     "@types/cookie-parser": "^1.4.3",
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/helmet": "^0.0.48",
     "@types/jsonwebtoken": "^9.0.10",
@@ -62,6 +68,7 @@
     "prettier": "3.7.4",
     "prisma": "^7.1.0",
     "ts-node-dev": "^2.0.0",
+    "tsc-alias": "^1.8.16",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.50.0",
