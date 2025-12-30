@@ -11,7 +11,7 @@ export const usersController = {
     return res.status(response.statusCode).json(response);
   }),
   updateById: catchAsync(async (req: Request, res: Response) => {
-    const user = await usersService.updateById(req.params.id, req.body);
+    const user = await usersService.updateById(req.user!.id, req.body);
     const response = new ApiResponse(statusCodes.SUCCESS, 'User updated', user);
     return res.status(response.statusCode).json(response);
   }),

@@ -1,4 +1,4 @@
-import { initializeApp, cert, getApps, getApp } from 'firebase-admin/app'; // Import thêm getApps, getApp
+import { initializeApp, cert, getApps, getApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { config } from './index.js';
 

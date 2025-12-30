@@ -1,4 +1,4 @@
-import { firebase } from '@/config/firebase.js';
+import { firebase } from '@/config/fireBase.js';
 
 const firestoreService = () => {
   const triggerNewMessage = async (message: {

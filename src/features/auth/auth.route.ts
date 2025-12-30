@@ -12,11 +12,13 @@ authRoutes.post(
   validate(googleAuthSchema),
   authController.googleAuth
 );
+
 authRoutes.post(
   '/sign-in',
   validate(signInWithEmailSchema),
   authController.signInWithEmail
 );
+
 authRoutes.post(
   '/sign-up',
   validate(signUpWithEmailSchema),

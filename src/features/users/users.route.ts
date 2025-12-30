@@ -7,7 +7,7 @@ const usersRoutes = Router();
 
 usersRoutes.get('/users/:id', validate(userSchema), usersController.getById);
 usersRoutes.patch(
-  '/users/:id',
+  '/users/me',
   validate(userSchema),
   usersController.updateById
 );

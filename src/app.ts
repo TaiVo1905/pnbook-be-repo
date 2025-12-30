@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 import { errorHandler } from './middlewares/errorHandle.middleware.js';
 import { authMiddleware } from './middlewares/auth.middleware.js';
 import { NotFoundError } from './core/apiError.js';
+import { setupSwagger } from './swagger/index.swagger.js';
 
 const app = express();
 
@@ -12,6 +13,8 @@ app.use(helmet());
 app.use(cookieParser());
 
 app.use(express.json());
+
+setupSwagger(app);
 
 app.use('/api/v1/auth', authRoute);
 
