@@ -49,37 +49,3 @@
  *             schema:
  *               $ref: '#/components/schemas/UserResponse'
  */
-
-/**
- * @swagger
- * /search:
- *   get:
- *     tags: [Users]
- *     summary: Search users by keyword
- *     security:
- *       - BearerAuth: []
- *     parameters:
- *       - name: keyword
- *         in: query
- *         required: true
- *         schema:
- *           type: string
- *           example: 'Nguyen'
- *       - name: page
- *         in: query
- *         schema:
- *           type: integer
- *           default: 1
- *       - name: limit
- *         in: query
- *         schema:
- *           type: integer
- *           default: 20
- *     responses:
- *       200:
- *         description: List of users matching search
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/UsersListResponse'
- */

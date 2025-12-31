@@ -11,20 +11,9 @@ export const usersController = {
     return res.status(response.statusCode).json(response);
   }),
   updateById: catchAsync(async (req: Request, res: Response) => {
-    const user = await usersService.updateById(req.user!.id, req.body);
+    const updatedUserRequest = { userId: req.user!.id, data: req.body };
+    const user = await usersService.updateById(updatedUserRequest);
     const response = new ApiResponse(statusCodes.SUCCESS, 'User updated', user);
-    return res.status(response.statusCode).json(response);
-  }),
-  search: catchAsync(async (req: Request, res: Response) => {
-    const keyword = String(req.query.keyword);
-    const page = Number(req.query.page || 1);
-    const limit = Number(req.query.limit || 20);
-    const users = await usersService.search(keyword, page, limit);
-    const response = new ApiResponse(
-      statusCodes.SUCCESS,
-      'Users fetched',
-      users
-    );
     return res.status(response.statusCode).json(response);
   }),
 };

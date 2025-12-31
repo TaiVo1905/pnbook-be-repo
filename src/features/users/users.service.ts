@@ -1,31 +1,41 @@
 import userRepository from '@/shared/repositories/user.repository.js';
 import { NotFoundError } from '@/core/apiError.js';
+import type { UserResponse } from '@/features/users/User.response.js';
+import type { UpdatedUserRequest } from './dtos/updatedUserRequest.dto.js';
 
 const usersService = () => {
-  const getById = async (id: string) => {
+  const getById = async (id: string): Promise<UserResponse> => {
     const user = await userRepository.findById(id);
     if (!user || user.deletedAt) throw new NotFoundError('User not found');
-    return user;
+    const userResponse: UserResponse = {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      avatarUrl: user.avatarUrl || null,
+      createdAt: user.createdAt.toISOString(),
+    };
+    return userResponse;
   };
 
   const updateById = async (
-    id: string,
-    data: { name?: string; avatarUrl?: string }
-  ) => {
-    await getById(id);
-    return await userRepository.updateById(id, data);
-  };
-
-  const search = async (keyword: string, page = 1, limit = 20) => {
-    const { users, count } = await userRepository.searchByNameOrEmail(
-      keyword,
-      page,
-      limit
+    updatedUserRequest: UpdatedUserRequest
+  ): Promise<UserResponse> => {
+    await getById(updatedUserRequest.userId);
+    const updatedUser = await userRepository.updateById(
+      updatedUserRequest.userId,
+      updatedUserRequest.data
     );
-    return { users, count };
+    const userResponse: UserResponse = {
+      id: updatedUser.id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      avatarUrl: updatedUser.avatarUrl || null,
+      createdAt: updatedUser.createdAt.toISOString(),
+    };
+    return userResponse;
   };
 
-  return { getById, updateById, search };
+  return { getById, updateById };
 };
 
 export default usersService();
