@@ -18,7 +18,12 @@ const generateSignedUrl = async ({
   filename,
   mimeType,
 }: PresignedUrlRequestDto) => {
-  const key = `private/${Date.now()}-${filename}`;
+  let key;
+  if(filename.startsWith("public")) {
+    key = `public/${Date.now()}-${filename.slice(8, filename.length - 1)}`;
+  } else {
+    key = `private/${Date.now()}-${filename}`;
+  }
   const command = new PutObjectCommand({
     Bucket: config.awsS3.bucketName!,
     Key: key,
