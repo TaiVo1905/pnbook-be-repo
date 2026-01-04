@@ -20,7 +20,7 @@ const generateSignedUrl = async ({
 }: PresignedUrlRequestDto) => {
   let key;
   if(filename.startsWith("public")) {
-    key = `public/${Date.now()}-${filename.slice(8, filename.length - 1)}`;
+    key = `public/${Date.now()}-${filename.slice(7, filename.length)}`;
   } else {
     key = `private/${Date.now()}-${filename}`;
   }
