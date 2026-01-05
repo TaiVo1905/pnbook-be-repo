@@ -39,18 +39,20 @@ const postRepository = () => {
   };
 
   const getFeeds = async (userId: string, page = 1, limit = 20) => {
-    const friendIds = await prisma.friendList.findMany({
+    const friendEdges = await prisma.friendList.findMany({
       where: {
         OR: [{ userId }, { friendId: userId }],
         deletedAt: null,
         status: 'accepted',
       },
-      select: { friendId: true },
+      select: { friendId: true, userId: true },
     });
-    const ids = [
-      userId,
-      ...friendIds.map((f) => f.friendId).filter((id) => id !== userId),
-    ];
+
+    const friendIds = friendEdges.map((edge) =>
+      edge.userId === userId ? edge.friendId : edge.userId
+    );
+
+    const ids = [userId, ...new Set(friendIds)].filter(Boolean);
     const [posts, count] = await Promise.all([
       prisma.post.findMany({
         where: { posterId: { in: ids }, deletedAt: null },
