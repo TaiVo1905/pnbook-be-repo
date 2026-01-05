@@ -19,6 +19,11 @@ const commentRepository = () => {
         where: { postId, deletedAt: null },
         include: {
           commenter: { select: { id: true, name: true, avatarUrl: true } },
+          _count: {
+            select: {
+              replies: { where: { deletedAt: null } },
+            },
+          },
         },
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * limit,
@@ -33,6 +38,11 @@ const commentRepository = () => {
       where: { id },
       include: {
         commenter: { select: { id: true, name: true, avatarUrl: true } },
+        _count: {
+          select: {
+            replies: { where: { deletedAt: null } },
+          },
+        },
       },
     });
   };

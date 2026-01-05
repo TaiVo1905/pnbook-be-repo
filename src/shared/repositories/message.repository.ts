@@ -15,7 +15,7 @@ const messageRepository = () => {
             { senderId: receiverId, receiverId: senderId },
           ],
         },
-        orderBy: { createdAt: 'asc' },
+        orderBy: { createdAt: 'desc' },
         skip: (page - 1) * limit,
         take: limit,
       }),
@@ -156,6 +156,17 @@ const messageRepository = () => {
     });
   };
 
+  const markAsRead = async (userId: string, otherUserId: string) => {
+    return await prisma.message.updateMany({
+      where: {
+        senderId: otherUserId,
+        receiverId: userId,
+        status: { not: 'read' },
+      },
+      data: { status: 'read' },
+    });
+  };
+
   return {
     listConversation,
     listConversations,
@@ -163,6 +174,7 @@ const messageRepository = () => {
     create,
     updateText,
     remove,
+    markAsRead,
   };
 };
 

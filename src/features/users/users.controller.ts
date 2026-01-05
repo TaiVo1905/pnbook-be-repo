@@ -16,4 +16,10 @@ export const usersController = {
     const response = new ApiResponse(statusCodes.SUCCESS, 'User updated', user);
     return res.status(response.statusCode).json(response);
   }),
+  getMe: catchAsync(async (req: Request, res: Response) => {
+    const userId = String(req.user!.id);
+    const user = await usersService.getById(userId);
+    const response = ApiResponse.success('User fetched', user);
+    return res.status(response.statusCode).json(response);
+  }),
 };

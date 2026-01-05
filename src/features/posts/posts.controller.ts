@@ -16,7 +16,7 @@ export const postsController = {
   }),
 
   getById: catchAsync(async (req: Request, res: Response) => {
-    const post = await postsService.getById(req.params.id);
+    const post = await postsService.getById(req.params.id, req.user!.id);
     const response = ApiResponse.success('Post fetched', post);
     return res.status(response.statusCode).json(response);
   }),

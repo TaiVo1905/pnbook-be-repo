@@ -97,7 +97,18 @@ const messagesService = () => {
     return await messageRepository.remove(id);
   };
 
-  return { listConversation, listConversations, create, updateText, remove };
+  const markAsRead = async (userId: string, otherUserId: string) => {
+    return await messageRepository.markAsRead(userId, otherUserId);
+  };
+
+  return {
+    listConversation,
+    listConversations,
+    create,
+    updateText,
+    remove,
+    markAsRead,
+  };
 };
 
 export default messagesService();

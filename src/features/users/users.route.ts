@@ -6,6 +6,9 @@ import { userSchema } from './schemas/userSchema.js';
 const usersRoutes = Router();
 
 usersRoutes.get('/users/:id', validate(userSchema), usersController.getById);
+
+usersRoutes.get('/auth/me', usersController.getMe);
+
 usersRoutes.patch(
   '/users/me',
   validate(userSchema),

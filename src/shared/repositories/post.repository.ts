@@ -13,13 +13,16 @@ const postRepository = () => {
     });
   };
 
-  const getById = async (id: string) => {
+  const getById = async (id: string, userId: string) => {
     return await prisma.post.findUnique({
       where: { id },
       include: {
+        poster: {
+          select: { id: true, name: true, avatarUrl: true },
+        },
         attachments: { where: { deletedAt: null } },
-        reactions: { where: { deletedAt: null } },
-        comments: { where: { deletedAt: null } },
+        reactions: { where: { reactorId: userId, deletedAt: null } },
+
         _count: {
           select: {
             comments: { where: { deletedAt: null } },
@@ -35,7 +38,11 @@ const postRepository = () => {
       prisma.post.findMany({
         where: { posterId, deletedAt: null },
         include: {
+          poster: {
+            select: { id: true, name: true, avatarUrl: true },
+          },
           attachments: { where: { deletedAt: null } },
+          reactions: { where: { reactorId: posterId, deletedAt: null } },
           _count: {
             select: {
               comments: { where: { deletedAt: null } },
@@ -71,7 +78,22 @@ const postRepository = () => {
       prisma.post.findMany({
         where: { posterId: { in: ids }, deletedAt: null },
         include: {
+          poster: {
+            select: { id: true, name: true, email: true, avatarUrl: true },
+          },
           attachments: { where: { deletedAt: null } },
+          reactions: {
+            where: { reactorId: userId, deletedAt: null },
+            select: { id: true },
+          },
+          originalPost: {
+            include: {
+              poster: {
+                select: { id: true, name: true, email: true, avatarUrl: true },
+              },
+              attachments: { where: { deletedAt: null } },
+            },
+          },
           _count: {
             select: {
               comments: { where: { deletedAt: null } },
@@ -115,6 +137,11 @@ const postRepository = () => {
       where: { postId_reactorId: { postId, reactorId } },
     });
 
+    await prisma.post.update({
+      where: { id: postId },
+      data: { reactionCount: { increment: 1 } },
+    });
+
     if (existingReaction && existingReaction.deletedAt) {
       return await prisma.postReaction.update({
         where: { id: existingReaction.id },
@@ -137,6 +164,11 @@ const postRepository = () => {
     if (!reaction) {
       throw new NotFoundError('Reaction not found');
     }
+
+    await prisma.post.update({
+      where: { id: postId },
+      data: { reactionCount: { decrement: 1 } },
+    });
 
     return await prisma.postReaction.update({
       where: { id: reaction.id },

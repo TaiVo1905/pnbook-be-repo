@@ -15,7 +15,7 @@ const commentsService = () => {
       content
     );
 
-    const post = await postRepository.getById(postId);
+    const post = await postRepository.getById(postId, commenterId);
     if (post && post.posterId !== commenterId) {
       await notificationRepository.create({
         receiverId: post.posterId,

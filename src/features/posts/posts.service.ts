@@ -6,6 +6,11 @@ import { ForbiddenError, NotFoundError } from '@/core/apiError.js';
 import firestoreService from '@/infrastructure/firestore.service.js';
 
 const postsService = () => {
+  const hydrated = (posts: any[]) =>
+    posts.map(({ reactions, ...rest }: any) => ({
+      ...rest,
+      reacted: reactions && reactions.length > 0,
+    }));
   const create = async (
     posterId: string,
     content: string,
@@ -15,7 +20,10 @@ const postsService = () => {
       type: 'image' | 'video' | 'audio';
     }>
   ) => {
-    if (originalPostId && !(await postRepository.getById(originalPostId))) {
+    if (
+      originalPostId &&
+      !(await postRepository.getById(originalPostId, posterId))
+    ) {
       throw new NotFoundError('Original post not found');
     }
 
@@ -49,8 +57,8 @@ const postsService = () => {
     return post;
   };
 
-  const getById = async (id: string) => {
-    const post = await postRepository.getById(id);
+  const getById = async (id: string, userId: string) => {
+    const post = await postRepository.getById(id, userId);
     if (!post || post.deletedAt) throw new NotFoundError('Post not found');
     return post;
   };
@@ -66,11 +74,13 @@ const postsService = () => {
 
   const getFeeds = async (userId: string, page = 1, limit = 20) => {
     const { posts, count } = await postRepository.getFeeds(userId, page, limit);
-    return { posts, count };
+    const hydratedPosts = hydrated(posts);
+
+    return { posts: hydratedPosts, count };
   };
 
   const update = async (id: string, actorId: string, content: string) => {
-    const existing = await getById(id);
+    const existing = await getById(id, actorId);
     if (existing.posterId !== actorId) {
       throw new ForbiddenError("Cannot edit others' post");
     }
@@ -78,7 +88,7 @@ const postsService = () => {
   };
 
   const remove = async (id: string, actorId: string) => {
-    const existing = await getById(id);
+    const existing = await getById(id, actorId);
     if (existing.posterId !== actorId) {
       throw new ForbiddenError("Cannot delete others' post");
     }
