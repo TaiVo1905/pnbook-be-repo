@@ -20,6 +20,12 @@ const postRepository = () => {
         attachments: { where: { deletedAt: null } },
         reactions: { where: { deletedAt: null } },
         comments: { where: { deletedAt: null } },
+        _count: {
+          select: {
+            comments: { where: { deletedAt: null } },
+            shares: { where: { deletedAt: null } },
+          },
+        },
       },
     });
   };
@@ -28,7 +34,15 @@ const postRepository = () => {
     const [posts, count] = await Promise.all([
       prisma.post.findMany({
         where: { posterId, deletedAt: null },
-        include: { attachments: { where: { deletedAt: null } } },
+        include: {
+          attachments: { where: { deletedAt: null } },
+          _count: {
+            select: {
+              comments: { where: { deletedAt: null } },
+              shares: { where: { deletedAt: null } },
+            },
+          },
+        },
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * limit,
         take: limit,
@@ -56,7 +70,15 @@ const postRepository = () => {
     const [posts, count] = await Promise.all([
       prisma.post.findMany({
         where: { posterId: { in: ids }, deletedAt: null },
-        include: { attachments: { where: { deletedAt: null } } },
+        include: {
+          attachments: { where: { deletedAt: null } },
+          _count: {
+            select: {
+              comments: { where: { deletedAt: null } },
+              shares: { where: { deletedAt: null } },
+            },
+          },
+        },
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * limit,
         take: limit,
