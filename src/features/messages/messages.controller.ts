@@ -64,4 +64,13 @@ export const messagesController = {
     const response = new ApiResponse(statusCodes.SUCCESS, 'Message deleted');
     return res.status(response.statusCode).json(response);
   }),
+
+  markAsRead: catchAsync(async (req: Request, res: Response) => {
+    await messagesService.markAsRead(req.user!.id, req.body.otherUserId);
+    const response = new ApiResponse(
+      statusCodes.SUCCESS,
+      'Messages marked as read'
+    );
+    return res.status(response.statusCode).json(response);
+  }),
 };

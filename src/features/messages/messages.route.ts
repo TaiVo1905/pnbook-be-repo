@@ -22,4 +22,6 @@ messagesRoutes.patch(
 );
 messagesRoutes.delete('/messages/:id', messagesController.remove);
 
+messagesRoutes.post('/messages/mark-as-read', messagesController.markAsRead);
+
 export default messagesRoutes;
