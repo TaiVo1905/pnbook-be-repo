@@ -92,7 +92,11 @@ const authService = () => {
     return { accessToken, refreshToken };
   };
 
-  return { signUpWithEmail, signInWithEmail, googleAuth };
+  const signOut = async (userId: string): Promise<void> => {
+    await refreshTokenRepository.deleteAllUserRefreshTokens(userId);
+  };
+
+  return { signUpWithEmail, signInWithEmail, googleAuth, signOut };
 };
 
 export default authService();

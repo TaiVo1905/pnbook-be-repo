@@ -37,4 +37,16 @@ export const authController = {
     );
     return res.status(response.statusCode).json(response);
   }),
+
+  signOut: catchAsync(async (req: Request, res: Response) => {
+    res.clearCookie('accessToken');
+    res.clearCookie('refreshToken');
+
+    await authService.signOut(req.user.id);
+    const apiResponse = new ApiResponse(
+      statusCodes.SUCCESS,
+      'User signed out successfully'
+    );
+    return res.status(apiResponse.statusCode).json(apiResponse);
+  }),
 };

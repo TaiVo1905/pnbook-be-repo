@@ -25,4 +25,6 @@ authRoutes.post(
   authController.signUpWithEmail
 );
 
+authRoutes.get('/sign-out', authController.signOut);
+
 export default authRoutes;
