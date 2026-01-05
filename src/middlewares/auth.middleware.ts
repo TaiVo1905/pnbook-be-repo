@@ -37,6 +37,16 @@ export const authMiddleware = async (
       return next(new ForbiddenError());
     }
 
+    const hasValidRefreshToken = await prisma.refreshToken.findFirst({
+      where: { userId: user.id, deletedAt: null },
+    });
+
+    if (!hasValidRefreshToken) {
+      return next(
+        new UnauthorizedError('Session expired. Please sign in again.')
+      );
+    }
+
     req.user = user;
     next();
   } catch (error) {

@@ -39,10 +39,9 @@ export const authController = {
   }),
 
   signOut: catchAsync(async (req: Request, res: Response) => {
+    await authService.signOut(req.user!.id);
     res.clearCookie('accessToken');
     res.clearCookie('refreshToken');
-
-    await authService.signOut(req.user.id);
     const apiResponse = new ApiResponse(
       statusCodes.SUCCESS,
       'User signed out successfully'

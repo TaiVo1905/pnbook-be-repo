@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { validate } from '@/middlewares/validate.middleware.js';
+import { authMiddleware } from '@/middlewares/auth.middleware.js';
 import { googleAuthSchema } from '@/features/auth/schemas/googleAuth.schema.js';
 import { signInWithEmailSchema } from './schemas/signInWithEmail.schema.js';
 import { signUpWithEmailSchema } from './schemas/signUpWithEmail.schema.js';
@@ -25,6 +26,6 @@ authRoutes.post(
   authController.signUpWithEmail
 );
 
-authRoutes.get('/sign-out', authController.signOut);
+authRoutes.get('/sign-out', authMiddleware, authController.signOut);
 
 export default authRoutes;
