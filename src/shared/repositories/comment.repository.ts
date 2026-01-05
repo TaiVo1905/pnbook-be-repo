@@ -8,12 +8,18 @@ const commentRepository = () => {
   ) => {
     return await prisma.comment.create({
       data: { postId, commenterId, content },
+      include: {
+        commenter: { select: { id: true, name: true, avatarUrl: true } },
+      },
     });
   };
   const listByPost = async (postId: string, page = 1, limit = 20) => {
     const [list, count] = await Promise.all([
       prisma.comment.findMany({
         where: { postId, deletedAt: null },
+        include: {
+          commenter: { select: { id: true, name: true, avatarUrl: true } },
+        },
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * limit,
         take: limit,
@@ -23,10 +29,21 @@ const commentRepository = () => {
     return { list, count };
   };
   const getById = async (id: string) => {
-    return await prisma.comment.findUnique({ where: { id } });
+    return await prisma.comment.findUnique({
+      where: { id },
+      include: {
+        commenter: { select: { id: true, name: true, avatarUrl: true } },
+      },
+    });
   };
   const update = async (id: string, content: string) => {
-    return await prisma.comment.update({ where: { id }, data: { content } });
+    return await prisma.comment.update({
+      where: { id },
+      data: { content },
+      include: {
+        commenter: { select: { id: true, name: true, avatarUrl: true } },
+      },
+    });
   };
   const remove = async (id: string) => {
     return await prisma.comment.update({
