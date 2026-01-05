@@ -73,3 +73,18 @@
  *             schema:
  *               $ref: '#/components/schemas/AuthResponse'
  */
+/**
+ * @swagger
+ * /auth/sign-out:
+ *  get:
+ *   tags: [Auth]
+ *  summary: Sign out the user
+ *  description: Sign out the authenticated user by clearing their tokens.
+ *  responses:
+ *    200:
+ *     description: User signed out successfully
+ *    content:
+ *     application/json:
+ *      schema:
+ *      $ref: '#/components/schemas/SignOutResponse'
+ */
