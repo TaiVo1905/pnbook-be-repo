@@ -11,6 +11,43 @@ const userRepository = () => {
     return await prisma.user.findUnique({ where: { id, deletedAt: null } });
   };
 
+  const findByIdWithFriendship = async (
+    id: string,
+    currentUserId: string
+  ): Promise<any> => {
+    return await prisma.user.findUnique({
+      where: {
+        id,
+        deletedAt: null,
+      },
+      include: {
+        friendOf: {
+          where: {
+            OR: [
+              { friendId: currentUserId, userId: id },
+              { userId: currentUserId, friendId: id },
+            ],
+            deletedAt: null,
+          },
+        },
+        sentFriendRequests: {
+          where: {
+            requesterId: currentUserId,
+            addresseeId: id,
+            deletedAt: null,
+          },
+        },
+        receivedFriendRequests: {
+          where: {
+            requesterId: id,
+            addresseeId: currentUserId,
+            deletedAt: null,
+          },
+        },
+      },
+    });
+  };
+
   const create = async (data: {
     name: string;
     email: string;
@@ -129,6 +166,7 @@ const userRepository = () => {
     updateWithGoogleAuth,
     upsertWithGoogleAuth,
     getFriendIds,
+    findByIdWithFriendship,
   };
 };
 

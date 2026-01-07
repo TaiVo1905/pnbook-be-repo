@@ -5,8 +5,11 @@ import { ApiResponse } from '@/core/apiResponse.js';
 import { statusCodes } from '@/core/statusCode.constant.js';
 
 export const usersController = {
-  getById: catchAsync(async (req: Request, res: Response) => {
-    const user = await usersService.getById(req.params.id);
+  getByIdWithFriendship: catchAsync(async (req: Request, res: Response) => {
+    const user = await usersService.getByIdWithFriendship(
+      req.params.id,
+      req.user!.id
+    );
     const response = new ApiResponse(statusCodes.SUCCESS, 'User fetched', user);
     return res.status(response.statusCode).json(response);
   }),
@@ -18,7 +21,7 @@ export const usersController = {
   }),
   getMe: catchAsync(async (req: Request, res: Response) => {
     const userId = String(req.user!.id);
-    const user = await usersService.getById(userId);
+    const user = await usersService.getMe(userId);
     const response = ApiResponse.success('User fetched', user);
     return res.status(response.statusCode).json(response);
   }),

@@ -5,7 +5,11 @@ import { userSchema } from './schemas/userSchema.js';
 
 const usersRoutes = Router();
 
-usersRoutes.get('/users/:id', validate(userSchema), usersController.getById);
+usersRoutes.get(
+  '/users/:id',
+  validate(userSchema),
+  usersController.getByIdWithFriendship
+);
 
 usersRoutes.get('/auth/me', usersController.getMe);
 
