@@ -22,6 +22,14 @@ const postRepository = () => {
         },
         attachments: { where: { deletedAt: null } },
         reactions: { where: { reactorId: userId, deletedAt: null } },
+        originalPost: {
+          include: {
+            poster: {
+              select: { id: true, name: true, email: true, avatarUrl: true },
+            },
+            attachments: { where: { deletedAt: null } },
+          },
+        },
 
         _count: {
           select: {
@@ -43,6 +51,14 @@ const postRepository = () => {
           },
           attachments: { where: { deletedAt: null } },
           reactions: { where: { reactorId: posterId, deletedAt: null } },
+          originalPost: {
+            include: {
+              poster: {
+                select: { id: true, name: true, email: true, avatarUrl: true },
+              },
+              attachments: { where: { deletedAt: null } },
+            },
+          },
           _count: {
             select: {
               comments: { where: { deletedAt: null } },

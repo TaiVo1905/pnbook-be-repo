@@ -60,7 +60,8 @@ const postsService = () => {
   const getById = async (id: string, userId: string) => {
     const post = await postRepository.getById(id, userId);
     if (!post || post.deletedAt) throw new NotFoundError('Post not found');
-    return post;
+    const hydratedPosts = hydrated([post]);
+    return hydratedPosts[0];
   };
 
   const getByPoster = async (posterId: string, page = 1, limit = 20) => {
@@ -69,7 +70,9 @@ const postsService = () => {
       page,
       limit
     );
-    return { posts, count };
+    const hydratedPosts = hydrated(posts);
+
+    return { posts: hydratedPosts, count };
   };
 
   const getFeeds = async (userId: string, page = 1, limit = 20) => {
