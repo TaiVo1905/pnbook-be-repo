@@ -94,9 +94,17 @@ const friendshipRepository = () => {
     requesterId: string,
     addresseeId: string
   ) => {
-    return await prisma.friendRequest.updateMany({
-      where: { requesterId, addresseeId, deletedAt: null },
-      data: { deletedAt: new Date() },
+    return await prisma.friendRequest.deleteMany({
+      where: {
+        OR: [
+          { requesterId, addresseeId, deletedAt: null },
+          {
+            requesterId: addresseeId,
+            addresseeId: requesterId,
+            deletedAt: null,
+          },
+        ],
+      },
     });
   };
 

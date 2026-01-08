@@ -81,7 +81,7 @@ export const friendshipsController = {
     );
     const response = new ApiResponse(
       statusCodes.SUCCESS,
-      'Friend request rejected'
+      'Friend request rejected/cancelled'
     );
     return res.status(response.statusCode).json(response);
   }),

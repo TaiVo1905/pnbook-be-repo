@@ -5,6 +5,8 @@ import { userSchema } from './schemas/userSchema.js';
 
 const usersRoutes = Router();
 
+usersRoutes.get('/users/suggestions', usersController.getSuggestions);
+
 usersRoutes.get(
   '/users/:id',
   validate(userSchema),
@@ -13,10 +15,6 @@ usersRoutes.get(
 
 usersRoutes.get('/auth/me', usersController.getMe);
 
-usersRoutes.patch(
-  '/users/me',
-  validate(userSchema),
-  usersController.updateById
-);
+usersRoutes.patch('/users/me', usersController.updateById);
 
 export default usersRoutes;

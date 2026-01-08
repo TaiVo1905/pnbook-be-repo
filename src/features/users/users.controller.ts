@@ -25,4 +25,13 @@ export const usersController = {
     const response = ApiResponse.success('User fetched', user);
     return res.status(response.statusCode).json(response);
   }),
+
+  getSuggestions: catchAsync(async (req: Request, res: Response) => {
+    const suggestions = await usersService.getSuggestions(req.user!.id);
+    const response = ApiResponse.success(
+      'User suggestions fetched',
+      suggestions
+    );
+    return res.status(response.statusCode).json(response);
+  }),
 };

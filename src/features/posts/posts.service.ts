@@ -64,9 +64,15 @@ const postsService = () => {
     return hydratedPosts[0];
   };
 
-  const getByPoster = async (posterId: string, page = 1, limit = 20) => {
+  const getByPoster = async (
+    posterId: string,
+    userId: string,
+    page = 1,
+    limit = 20
+  ) => {
     const { posts, count } = await postRepository.getByPoster(
       posterId,
+      userId,
       page,
       limit
     );

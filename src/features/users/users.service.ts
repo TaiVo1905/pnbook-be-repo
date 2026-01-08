@@ -58,7 +58,18 @@ const usersService = () => {
     return userResponse;
   };
 
-  return { getByIdWithFriendship, updateById, getMe };
+  const getSuggestions = async (userId: string): Promise<UserResponse[]> => {
+    const suggestions = await userRepository.findSuggestions(userId);
+    return suggestions.map((user) => ({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      avatarUrl: user.avatarUrl || null,
+      createdAt: user.createdAt.toISOString(),
+    }));
+  };
+
+  return { getByIdWithFriendship, updateById, getMe, getSuggestions };
 };
 
 export default usersService();

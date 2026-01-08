@@ -26,6 +26,7 @@ export const postsController = {
     const limit = Number(req.query.limit || 20);
     const { posts, count } = await postsService.getByPoster(
       req.params.id,
+      req.user!.id,
       page,
       limit
     );

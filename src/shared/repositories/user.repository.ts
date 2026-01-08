@@ -32,15 +32,15 @@ const userRepository = () => {
         },
         sentFriendRequests: {
           where: {
-            requesterId: currentUserId,
-            addresseeId: id,
+            requesterId: id,
+            addresseeId: currentUserId,
             deletedAt: null,
           },
         },
         receivedFriendRequests: {
           where: {
-            requesterId: id,
-            addresseeId: currentUserId,
+            requesterId: currentUserId,
+            addresseeId: id,
             deletedAt: null,
           },
         },
@@ -157,6 +157,46 @@ const userRepository = () => {
     ];
   };
 
+  const findSuggestions = async (userId: string) => {
+    const suggestions = await prisma.user.findMany({
+      where: {
+        id: { not: userId },
+        deletedAt: null,
+        AND: [
+          {
+            friendOf: {
+              none: {
+                OR: [
+                  { userId: userId, deletedAt: null },
+                  { friendId: userId, deletedAt: null },
+                ],
+              },
+            },
+          },
+          {
+            sentFriendRequests: {
+              none: {
+                requesterId: userId,
+                deletedAt: null,
+              },
+            },
+          },
+          {
+            receivedFriendRequests: {
+              none: {
+                addresseeId: userId,
+                deletedAt: null,
+              },
+            },
+          },
+        ],
+      },
+      take: Math.max(10, Math.floor(Math.random() * 20)),
+      orderBy: { createdAt: 'desc' },
+    });
+    return suggestions;
+  };
+
   return {
     findByEmail,
     findById,
@@ -167,6 +207,7 @@ const userRepository = () => {
     upsertWithGoogleAuth,
     getFriendIds,
     findByIdWithFriendship,
+    findSuggestions,
   };
 };
 

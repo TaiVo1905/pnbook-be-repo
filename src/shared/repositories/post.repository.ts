@@ -41,7 +41,12 @@ const postRepository = () => {
     });
   };
 
-  const getByPoster = async (posterId: string, page = 1, limit = 20) => {
+  const getByPoster = async (
+    posterId: string,
+    userId: string,
+    page = 1,
+    limit = 20
+  ) => {
     const [posts, count] = await Promise.all([
       prisma.post.findMany({
         where: { posterId, deletedAt: null },
@@ -50,7 +55,7 @@ const postRepository = () => {
             select: { id: true, name: true, avatarUrl: true },
           },
           attachments: { where: { deletedAt: null } },
-          reactions: { where: { reactorId: posterId, deletedAt: null } },
+          reactions: { where: { reactorId: userId, deletedAt: null } },
           originalPost: {
             include: {
               poster: {
