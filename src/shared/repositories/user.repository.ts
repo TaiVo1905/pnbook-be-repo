@@ -176,7 +176,7 @@ const userRepository = () => {
           {
             sentFriendRequests: {
               none: {
-                requesterId: userId,
+                addresseeId: userId,
                 deletedAt: null,
               },
             },
@@ -184,7 +184,7 @@ const userRepository = () => {
           {
             receivedFriendRequests: {
               none: {
-                addresseeId: userId,
+                requesterId: userId,
                 deletedAt: null,
               },
             },
