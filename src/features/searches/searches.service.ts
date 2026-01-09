@@ -13,6 +13,7 @@ const searchService = () => {
     const result = await prisma.$transaction(async (tx) => {
       const { posts, count } = await postRepository.search(
         keyword,
+        userId,
         page,
         limit,
         tx

@@ -199,6 +199,7 @@ const postRepository = () => {
 
   const search = async (
     keyword: string,
+    userId: string,
     page = 1,
     limit = 20,
     tx: Prisma.TransactionClient = prisma
@@ -212,7 +213,30 @@ const postRepository = () => {
             mode: 'insensitive',
           },
         },
-        include: { attachments: { where: { deletedAt: null } } },
+        include: {
+          poster: {
+            select: { id: true, name: true, email: true, avatarUrl: true },
+          },
+          attachments: { where: { deletedAt: null } },
+          reactions: {
+            where: { reactorId: userId, deletedAt: null },
+            select: { id: true },
+          },
+          originalPost: {
+            include: {
+              poster: {
+                select: { id: true, name: true, email: true, avatarUrl: true },
+              },
+              attachments: { where: { deletedAt: null } },
+            },
+          },
+          _count: {
+            select: {
+              comments: { where: { deletedAt: null } },
+              shares: { where: { deletedAt: null } },
+            },
+          },
+        },
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * limit,
         take: limit,
