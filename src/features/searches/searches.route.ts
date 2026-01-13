@@ -1,11 +1,9 @@
 import { Router } from 'express';
 import { searchesController } from './searches.controller.js';
 import { validate } from '@/middlewares/validate.middleware.js';
-import {
-  searchSchema,
-  getHistorySchema,
-  deleteHistorySchema,
-} from './schemas/search.schema.js';
+import { searchSchema } from './schemas/search.schema.js';
+import { historySchema } from './schemas/history.schema.js';
+import { deleteHistorySchema } from './schemas/deleteHistory.schema.js';
 
 const searchesRoutes = Router();
 
@@ -22,7 +20,7 @@ searchesRoutes.get(
 
 searchesRoutes.get(
   '/search-history',
-  validate(getHistorySchema),
+  validate(historySchema),
   searchesController.getHistory
 );
 searchesRoutes.delete(
@@ -30,6 +28,9 @@ searchesRoutes.delete(
   validate(deleteHistorySchema),
   searchesController.deleteHistory
 );
-searchesRoutes.delete('/search-history', searchesController.clearAll);
+searchesRoutes.delete(
+  '/search-history',
+  searchesController.clearAllHistoryByUser
+);
 
 export default searchesRoutes;

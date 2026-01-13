@@ -1,94 +1,182 @@
+import type {
+  CreatePostParams,
+  GetByPosterParams,
+  GetFeedsParams,
+  UpdatePostParams,
+  PostReactionParams,
+} from '@/shared/dtos/repositories/post.repository.dto.js';
 import { NotFoundError } from '@/core/apiError.js';
 import { prisma } from '@/utils/prisma.js';
 import type { Prisma } from 'generated/prisma/edge.js';
+import type { SearchParams } from '../dtos/repositories/searchHistory.repository.dto.js';
 
-const postRepository = () => {
-  const create = async (
-    posterId: string,
-    content: string,
-    originalPostId?: string
-  ) => {
+const postRepository = {
+  create: async (createPostParams: CreatePostParams) => {
     return await prisma.post.create({
-      data: { posterId, content, originalPostId: originalPostId || null },
+      data: {
+        posterId: createPostParams.posterId,
+        content: createPostParams.content,
+        originalPostId: createPostParams.originalPostId || null,
+      },
     });
-  };
+  },
 
-  const getById = async (id: string) => {
+  getById: async ({ id, userId }: { id: string; userId: string }) => {
     return await prisma.post.findUnique({
       where: { id },
       include: {
+        poster: {
+          select: { id: true, name: true, avatarUrl: true },
+        },
         attachments: { where: { deletedAt: null } },
-        reactions: { where: { deletedAt: null } },
-        comments: { where: { deletedAt: null } },
+        reactions: { where: { reactorId: userId, deletedAt: null } },
+        originalPost: {
+          include: {
+            poster: {
+              select: { id: true, name: true, email: true, avatarUrl: true },
+            },
+            attachments: { where: { deletedAt: null } },
+          },
+        },
+        _count: {
+          select: {
+            comments: { where: { deletedAt: null } },
+            shares: { where: { deletedAt: null } },
+          },
+        },
       },
     });
-  };
+  },
 
-  const getByPoster = async (posterId: string, page = 1, limit = 20) => {
+  getByPoster: async (getByPosterParams: GetByPosterParams) => {
     const [posts, count] = await Promise.all([
       prisma.post.findMany({
-        where: { posterId, deletedAt: null },
-        include: { attachments: { where: { deletedAt: null } } },
+        where: { posterId: getByPosterParams.posterId, deletedAt: null },
+        include: {
+          poster: {
+            select: { id: true, name: true, avatarUrl: true },
+          },
+          attachments: { where: { deletedAt: null } },
+          reactions: {
+            where: { reactorId: getByPosterParams.userId, deletedAt: null },
+          },
+          originalPost: {
+            include: {
+              poster: {
+                select: { id: true, name: true, email: true, avatarUrl: true },
+              },
+              attachments: { where: { deletedAt: null } },
+            },
+          },
+          _count: {
+            select: {
+              comments: { where: { deletedAt: null } },
+              shares: { where: { deletedAt: null } },
+            },
+          },
+        },
         orderBy: { createdAt: 'desc' },
-        skip: (page - 1) * limit,
-        take: limit,
+        skip: (getByPosterParams.page - 1) * getByPosterParams.limit,
+        take: getByPosterParams.limit,
       }),
-      prisma.post.count({ where: { posterId, deletedAt: null } }),
+      prisma.post.count({
+        where: { posterId: getByPosterParams.posterId, deletedAt: null },
+      }),
     ]);
     return { posts, count };
-  };
+  },
 
-  const getFeeds = async (userId: string, page = 1, limit = 20) => {
-    const friendIds = await prisma.friendList.findMany({
+  getFeeds: async (getFeedsParams: GetFeedsParams) => {
+    const friendEdges = await prisma.friendList.findMany({
       where: {
-        OR: [{ userId }, { friendId: userId }],
+        OR: [
+          { userId: getFeedsParams.userId },
+          { friendId: getFeedsParams.userId },
+        ],
         deletedAt: null,
         status: 'accepted',
       },
-      select: { friendId: true },
+      select: { friendId: true, userId: true },
     });
-    const ids = [
-      userId,
-      ...friendIds.map((f) => f.friendId).filter((id) => id !== userId),
-    ];
+    const friendIds = friendEdges.map((edge) =>
+      edge.userId === getFeedsParams.userId ? edge.friendId : edge.userId
+    );
+
+    const ids = [getFeedsParams.userId, ...new Set(friendIds)].filter(Boolean);
+
     const [posts, count] = await Promise.all([
       prisma.post.findMany({
         where: { posterId: { in: ids }, deletedAt: null },
-        include: { attachments: { where: { deletedAt: null } } },
+        include: {
+          poster: {
+            select: { id: true, name: true, avatarUrl: true },
+          },
+          attachments: {
+            where: { deletedAt: null },
+          },
+          reactions: {
+            where: { reactorId: getFeedsParams.userId, deletedAt: null },
+            select: { id: true },
+          },
+          originalPost: {
+            include: {
+              poster: {
+                select: { id: true, name: true, email: true, avatarUrl: true },
+              },
+              attachments: { where: { deletedAt: null } },
+            },
+          },
+          _count: {
+            select: {
+              comments: { where: { deletedAt: null } },
+              shares: { where: { deletedAt: null } },
+            },
+          },
+        },
         orderBy: { createdAt: 'desc' },
-        skip: (page - 1) * limit,
-        take: limit,
+        skip: (getFeedsParams.page - 1) * getFeedsParams.limit,
+        take: getFeedsParams.limit,
       }),
       prisma.post.count({ where: { posterId: { in: ids }, deletedAt: null } }),
     ]);
     return { posts, count };
-  };
+  },
 
-  const update = async (id: string, content: string) => {
-    return await prisma.post.update({ where: { id }, data: { content } });
-  };
+  update: async (updatePostParams: UpdatePostParams) => {
+    return await prisma.post.update({
+      where: { id: updatePostParams.id },
+      data: { content: updatePostParams.content },
+    });
+  },
 
-  const deletePost = async (id: string) => {
+  remove: async (id: string) => {
     return await prisma.post.update({
       where: { id },
       data: { deletedAt: new Date() },
     });
-  };
+  },
 
-  const listReactions = async (postId: string) => {
+  listReactions: async (postId: string) => {
     return await prisma.postReaction.findMany({
       where: { postId, deletedAt: null },
     });
-  };
+  },
 
-  const react = async (postId: string, reactorId: string) => {
-    const post = await prisma.post.findUnique({ where: { id: postId } });
+  react: async (postReactionParams: PostReactionParams) => {
+    const post = await prisma.post.findUnique({
+      where: { id: postReactionParams.postId },
+    });
     if (!post || post.deletedAt) {
       throw new NotFoundError('Post not found');
     }
 
     const existingReaction = await prisma.postReaction.findUnique({
-      where: { postId_reactorId: { postId, reactorId } },
+      where: { postId_reactorId: { ...postReactionParams } },
+    });
+
+    await prisma.post.update({
+      where: { id: postReactionParams.postId },
+      data: { reactionCount: { increment: 1 } },
     });
 
     if (existingReaction && existingReaction.deletedAt) {
@@ -98,32 +186,35 @@ const postRepository = () => {
       });
     } else if (!existingReaction) {
       return await prisma.postReaction.create({
-        data: { postId, reactorId },
+        data: { ...postReactionParams },
       });
     }
 
     return existingReaction;
-  };
+  },
 
-  const unreact = async (postId: string, reactorId: string) => {
+  unreact: async (postReactionParams: PostReactionParams) => {
     const reaction = await prisma.postReaction.findUnique({
-      where: { postId_reactorId: { postId, reactorId } },
+      where: { postId_reactorId: { ...postReactionParams } },
     });
 
     if (!reaction) {
       throw new NotFoundError('Reaction not found');
     }
 
+    await prisma.post.update({
+      where: { id: postReactionParams.postId },
+      data: { reactionCount: { decrement: 1 } },
+    });
+
     return await prisma.postReaction.update({
       where: { id: reaction.id },
       data: { deletedAt: new Date() },
     });
-  };
+  },
 
-  const search = async (
-    keyword: string,
-    page = 1,
-    limit = 20,
+  search: async (
+    searchParams: SearchParams,
     tx: Prisma.TransactionClient = prisma
   ) => {
     const [posts, count] = await Promise.all([
@@ -131,40 +222,50 @@ const postRepository = () => {
         where: {
           deletedAt: null,
           content: {
-            contains: keyword,
+            contains: searchParams.keyword,
             mode: 'insensitive',
           },
         },
-        include: { attachments: { where: { deletedAt: null } } },
+        include: {
+          poster: {
+            select: { id: true, name: true, email: true, avatarUrl: true },
+          },
+          attachments: { where: { deletedAt: null } },
+          reactions: {
+            where: { reactorId: searchParams.userId, deletedAt: null },
+            select: { id: true },
+          },
+          originalPost: {
+            include: {
+              poster: {
+                select: { id: true, name: true, email: true, avatarUrl: true },
+              },
+              attachments: { where: { deletedAt: null } },
+            },
+          },
+          _count: {
+            select: {
+              comments: { where: { deletedAt: null } },
+              shares: { where: { deletedAt: null } },
+            },
+          },
+        },
         orderBy: { createdAt: 'desc' },
-        skip: (page - 1) * limit,
-        take: limit,
+        skip: (searchParams.page - 1) * searchParams.limit,
+        take: searchParams.limit,
       }),
       tx.post.count({
         where: {
           deletedAt: null,
           content: {
-            contains: keyword,
+            contains: searchParams.keyword,
             mode: 'insensitive',
           },
         },
       }),
     ]);
     return { posts, count };
-  };
-
-  return {
-    create,
-    getById,
-    getByPoster,
-    getFeeds,
-    update,
-    deletePost,
-    listReactions,
-    react,
-    unreact,
-    search,
-  };
+  },
 };
 
-export default postRepository();
+export default postRepository;

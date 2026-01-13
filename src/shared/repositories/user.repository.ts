@@ -1,21 +1,59 @@
 import type { GoogleUserInfo } from '@/infrastructure/interfaces/googleUser.type.js';
+import type {
+  CreateUserParams,
+  UpdateUserParams,
+  SearchUserParams,
+} from '@/shared/dtos/repositories/user.repository.dto.js';
 import { prisma } from '@/utils/prisma.js';
 import type { Prisma } from 'generated/prisma/index.js';
 
-const userRepository = () => {
-  const findByEmail = async (email: string) => {
+const userRepository = {
+  findByEmail: async (email: string) => {
     return await prisma.user.findUnique({ where: { email } });
-  };
+  },
 
-  const findById = async (id: string) => {
+  findById: async (id: string) => {
     return await prisma.user.findUnique({ where: { id, deletedAt: null } });
-  };
+  },
 
-  const create = async (data: {
-    name: string;
-    email: string;
-    password: string;
-  }) => {
+  findByIdWithFriendship: async (
+    id: string,
+    currentUserId: string
+  ): Promise<any> => {
+    return await prisma.user.findUnique({
+      where: {
+        id,
+        deletedAt: null,
+      },
+      include: {
+        friendOf: {
+          where: {
+            OR: [
+              { friendId: currentUserId, userId: id },
+              { userId: currentUserId, friendId: id },
+            ],
+            deletedAt: null,
+          },
+        },
+        sentFriendRequests: {
+          where: {
+            requesterId: id,
+            addresseeId: currentUserId,
+            deletedAt: null,
+          },
+        },
+        receivedFriendRequests: {
+          where: {
+            requesterId: currentUserId,
+            addresseeId: id,
+            deletedAt: null,
+          },
+        },
+      },
+    });
+  },
+
+  create: async (data: CreateUserParams) => {
     return await prisma.user.create({
       data: {
         name: data.name,
@@ -23,55 +61,60 @@ const userRepository = () => {
         password: data.password,
       },
     });
-  };
+  },
 
-  const updateById = async (
-    id: string,
-    data: Partial<{
-      name: string;
-      password: string;
-      avatarUrl: string;
-    }>
-  ) => {
+  updateById: async (id: string, data: Partial<UpdateUserParams>) => {
     return await prisma.user.update({
       where: { id },
       data,
     });
-  };
+  },
 
-  const searchByNameOrEmail = async (
-    keyword: string,
-    page = 1,
-    limit = 10,
+  searchByNameOrEmail: async (
+    searchUserParams: SearchUserParams,
     tx: Prisma.TransactionClient = prisma
   ) => {
     const [users, count] = await Promise.all([
       tx.user.findMany({
         where: {
           OR: [
-            { name: { contains: keyword, mode: 'insensitive' } },
-            { email: { contains: keyword, mode: 'insensitive' } },
+            {
+              name: { contains: searchUserParams.keyword, mode: 'insensitive' },
+            },
+            {
+              email: {
+                contains: searchUserParams.keyword,
+                mode: 'insensitive',
+              },
+            },
           ],
           deletedAt: null,
         },
         orderBy: { name: 'asc' },
-        skip: (page - 1) * limit,
-        take: limit,
+        skip: (searchUserParams.page - 1) * searchUserParams.limit,
+        take: searchUserParams.limit,
       }),
       tx.user.count({
         where: {
           OR: [
-            { name: { contains: keyword, mode: 'insensitive' } },
-            { email: { contains: keyword, mode: 'insensitive' } },
+            {
+              name: { contains: searchUserParams.keyword, mode: 'insensitive' },
+            },
+            {
+              email: {
+                contains: searchUserParams.keyword,
+                mode: 'insensitive',
+              },
+            },
           ],
           deletedAt: null,
         },
       }),
     ]);
     return { users, count };
-  };
+  },
 
-  const updateWithGoogleAuth = async (
+  updateWithGoogleAuth: async (
     userId: string,
     userInfoResponse: GoogleUserInfo,
     tx: Prisma.TransactionClient = prisma
@@ -84,9 +127,9 @@ const userRepository = () => {
         avatarUrl: userInfoResponse.picture,
       },
     });
-  };
+  },
 
-  const upsertWithGoogleAuth = async (
+  upsertWithGoogleAuth: async (
     userInfoResponse: GoogleUserInfo,
     tx: Prisma.TransactionClient = prisma
   ) => {
@@ -102,9 +145,9 @@ const userRepository = () => {
         avatarUrl: userInfoResponse.picture,
       },
     });
-  };
+  },
 
-  const getFriendIds = async (userId: string) => {
+  getFriendIds: async (userId: string) => {
     const friends = await prisma.friendList.findMany({
       where: {
         OR: [{ userId: userId }, { friendId: userId }],
@@ -118,18 +161,47 @@ const userRepository = () => {
         friends.map((f) => (f.userId === userId ? f.friendId : f.userId))
       ),
     ];
-  };
+  },
 
-  return {
-    findByEmail,
-    findById,
-    searchByNameOrEmail,
-    updateById,
-    create,
-    updateWithGoogleAuth,
-    upsertWithGoogleAuth,
-    getFriendIds,
-  };
+  findSuggestions: async (userId: string) => {
+    const suggestions = await prisma.user.findMany({
+      where: {
+        id: { not: userId },
+        deletedAt: null,
+        AND: [
+          {
+            friendOf: {
+              none: {
+                OR: [
+                  { userId: userId, deletedAt: null },
+                  { friendId: userId, deletedAt: null },
+                ],
+              },
+            },
+          },
+          {
+            sentFriendRequests: {
+              none: {
+                addresseeId: userId,
+                deletedAt: null,
+              },
+            },
+          },
+          {
+            receivedFriendRequests: {
+              none: {
+                requesterId: userId,
+                deletedAt: null,
+              },
+            },
+          },
+        ],
+      },
+      take: Math.max(10, Math.floor(Math.random() * 20)),
+      orderBy: { createdAt: 'desc' },
+    });
+    return suggestions;
+  },
 };
 
-export default userRepository();
+export default userRepository;

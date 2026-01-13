@@ -1,61 +1,74 @@
 import type { Request, Response } from 'express';
 import { catchAsync } from '@/utils/catchAsync.js';
-import searchHistoryRepository from '@/shared/repositories/searchHistory.repository.js';
 import { ApiResponse } from '@/core/apiResponse.js';
 import { statusCodes } from '@/core/statusCode.constant.js';
 import searchService from './searches.service.js';
+import type {
+  SearchHistoryRequestDto,
+  SearchRequestDto,
+} from './dtos/searchRequest.dto.js';
+import { SEARCHES_MESSAGES } from './searches.messages.js';
+
+const extractSearchQuery = (req: Request) => {
+  const keyword = String(req.query.keyword);
+  const page = Number(req.query.page);
+  const limit = Number(req.query.limit);
+  return { keyword, page, limit };
+};
 
 export const searchesController = {
   searchPosts: catchAsync(async (req: Request, res: Response) => {
-    const keyword = String(req.query.keyword);
-    const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 20;
-    const { posts, count } = await searchService.searchPosts(
-      req.user!.id,
-      keyword,
-      page,
-      limit
+    const searchPayload = extractSearchQuery(req);
+    const searchRequest: SearchRequestDto = {
+      userId: req.user!.id,
+      data: searchPayload,
+    };
+    const { posts, count } = await searchService.searchPosts(searchRequest);
+    const response = ApiResponse.paginated(
+      SEARCHES_MESSAGES.POSTS_SEARCHED,
+      posts,
+      {
+        currentPage: searchPayload.page,
+        limit: searchPayload.limit,
+        totalItems: count,
+      }
     );
-    const response = ApiResponse.paginated('Posts searched', posts, {
-      currentPage: page,
-      limit,
-      totalItems: count,
-    });
     return res.status(response.statusCode).json(response);
   }),
 
   searchUsers: catchAsync(async (req: Request, res: Response) => {
-    const keyword = String(req.query.keyword);
-    const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 20;
-    const { users, count } = await searchService.searchUsers(
-      req.user!.id,
-      keyword,
-      page,
-      limit
+    const searchPayload = extractSearchQuery(req);
+    const searchRequest: SearchRequestDto = {
+      userId: req.user!.id,
+      data: searchPayload,
+    };
+    const { users, count } = await searchService.searchUsers(searchRequest);
+    const response = ApiResponse.paginated(
+      SEARCHES_MESSAGES.USERS_SEARCHED,
+      users,
+      {
+        currentPage: searchPayload.page,
+        limit: searchPayload.limit,
+        totalItems: count,
+      }
     );
-    const response = ApiResponse.paginated('Users searched', users, {
-      currentPage: page,
-      limit,
-      totalItems: count,
-    });
     return res.status(response.statusCode).json(response);
   }),
 
   getHistory: catchAsync(async (req: Request, res: Response) => {
-    const page = Number(req.query.page || 1);
-    const limit = Number(req.query.limit || 20);
-    const { histories, count } = await searchHistoryRepository.getByUser(
-      req.user!.id,
-      page,
-      limit
-    );
+    const searchPayload = extractSearchQuery(req);
+    const searchRequest: SearchHistoryRequestDto = {
+      userId: req.user!.id,
+      ...searchPayload,
+    };
+    const { histories, count } =
+      await searchService.getHistoryByUser(searchRequest);
     const response = ApiResponse.paginated(
-      'Search history fetched',
+      SEARCHES_MESSAGES.HISTORY_FETCHED,
       histories,
       {
-        currentPage: page,
-        limit,
+        currentPage: searchPayload.page,
+        limit: searchPayload.limit,
         totalItems: count,
       }
     );
@@ -64,28 +77,31 @@ export const searchesController = {
 
   deleteHistory: catchAsync(async (req: Request, res: Response) => {
     const { id } = req.params;
-    const result = await searchHistoryRepository.deleteById(id, req.user!.id);
+    const result = await searchService.deleteHistoryById({
+      id,
+      userId: req.user!.id,
+    });
 
     if (result.count === 0) {
       const response = new ApiResponse(
         statusCodes.NOT_FOUND,
-        'Search history not found or unauthorized'
+        SEARCHES_MESSAGES.HISTORY_NOT_FOUND_OR_UNAUTHORIZED
       );
       return res.status(response.statusCode).json(response);
     }
 
     const response = new ApiResponse(
       statusCodes.SUCCESS,
-      'Search history deleted'
+      SEARCHES_MESSAGES.HISTORY_DELETED
     );
     return res.status(response.statusCode).json(response);
   }),
 
-  clearAll: catchAsync(async (req: Request, res: Response) => {
-    await searchHistoryRepository.deleteAllByUser(req.user!.id);
+  clearAllHistoryByUser: catchAsync(async (req: Request, res: Response) => {
+    await searchService.deleteAllHistoryByUser(req.user!.id);
     const response = new ApiResponse(
       statusCodes.SUCCESS,
-      'All search history cleared'
+      SEARCHES_MESSAGES.ALL_HISTORY_CLEARED
     );
     return res.status(response.statusCode).json(response);
   }),

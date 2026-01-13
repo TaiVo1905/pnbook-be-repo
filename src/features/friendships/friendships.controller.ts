@@ -3,85 +3,103 @@ import { catchAsync } from '@/utils/catchAsync.js';
 import friendshipsService from './friendships.service.js';
 import { ApiResponse } from '@/core/apiResponse.js';
 import { statusCodes } from '@/core/statusCode.constant.js';
+import { FRIENDSHIPS_MESSAGES } from './friendships.messages.js';
 
 export const friendshipsController = {
   listMine: catchAsync(async (req: Request, res: Response) => {
-    const page = Number(req.query.page);
-    const limit = Number(req.query.limit);
-    const { list, count } = await friendshipsService.listMine(
-      req.user!.id,
+    const page = Number(req.query.page || 1);
+    const limit = Number(req.query.limit || 20);
+    const { list, count } = await friendshipsService.listMine({
+      userId: req.user!.id,
       page,
-      limit
-    );
-    const response = ApiResponse.paginated('Friends fetched', list, {
-      currentPage: page,
       limit,
-      totalItems: count,
     });
+    const response = ApiResponse.paginated(
+      FRIENDSHIPS_MESSAGES.FRIENDS_FETCHED,
+      list,
+      {
+        currentPage: page,
+        limit,
+        totalItems: count,
+      }
+    );
     return res.status(response.statusCode).json(response);
   }),
 
   listOfUser: catchAsync(async (req: Request, res: Response) => {
-    const page = Number(req.query.page);
-    const limit = Number(req.query.limit);
-    const { list, count } = await friendshipsService.listOfUser(
-      req.params.id,
+    const page = Number(req.query.page || 1);
+    const limit = Number(req.query.limit || 20);
+    const { list, count } = await friendshipsService.listOfUser({
+      userId: req.params.id,
       page,
-      limit
-    );
-    const response = ApiResponse.paginated('User friends fetched', list, {
-      currentPage: page,
       limit,
-      totalItems: count,
     });
+    const response = ApiResponse.paginated(
+      FRIENDSHIPS_MESSAGES.FRIENDS_FETCHED,
+      list,
+      {
+        currentPage: page,
+        limit,
+        totalItems: count,
+      }
+    );
     return res.status(response.statusCode).json(response);
   }),
 
   listRequests: catchAsync(async (req: Request, res: Response) => {
-    const page = Number(req.query.page);
-    const limit = Number(req.query.limit);
-    const { list, count } = await friendshipsService.listRequests(
-      req.user!.id,
+    const page = Number(req.query.page || 1);
+    const limit = Number(req.query.limit || 20);
+    const { list, count } = await friendshipsService.listRequests({
+      userId: req.user!.id,
       page,
-      limit
-    );
-    const response = ApiResponse.paginated('Friend requests fetched', list, {
-      currentPage: page,
       limit,
-      totalItems: count,
     });
+    const response = ApiResponse.paginated(
+      FRIENDSHIPS_MESSAGES.FRIEND_REQUESTS_FETCHED,
+      list,
+      {
+        currentPage: page,
+        limit,
+        totalItems: count,
+      }
+    );
     return res.status(response.statusCode).json(response);
   }),
 
   sendRequest: catchAsync(async (req: Request, res: Response) => {
-    const friendRequest = await friendshipsService.sendRequest(
-      req.user!.id,
-      req.body.addresseeId
+    const friendRequest = await friendshipsService.sendRequest({
+      addresseeId: req.body.addresseeId,
+      requesterId: req.user!.id,
+    });
+    const response = ApiResponse.created(
+      FRIENDSHIPS_MESSAGES.FRIEND_REQUEST_SENT_CONTENT,
+      friendRequest
     );
-    const response = ApiResponse.created('Friend request sent', friendRequest);
     return res.status(response.statusCode).json(response);
   }),
 
   acceptRequest: catchAsync(async (req: Request, res: Response) => {
-    await friendshipsService.acceptRequest(
-      req.params.requesterId,
-      req.user!.id
-    );
+    await friendshipsService.acceptRequest({
+      addresseeId: req.user!.id,
+      requesterId: req.params.requesterId,
+    });
+
     const response = new ApiResponse(
       statusCodes.SUCCESS,
-      'Friend request accepted'
+      FRIENDSHIPS_MESSAGES.REQUEST_ACCEPTED_CONTENT
     );
     return res.status(response.statusCode).json(response);
   }),
 
   rejectRequest: catchAsync(async (req: Request, res: Response) => {
-    await friendshipsService.rejectRequest(
-      req.params.requesterId,
-      req.user!.id
-    );
+    await friendshipsService.rejectRequest({
+      addresseeId: req.user!.id,
+      requesterId: req.params.requesterId,
+    });
+
     const response = new ApiResponse(
       statusCodes.SUCCESS,
-      'Friend request rejected'
+      FRIENDSHIPS_MESSAGES.REQUEST_REJECTED_CONTENT
     );
     return res.status(response.statusCode).json(response);
   }),
@@ -93,7 +111,7 @@ export const friendshipsController = {
       req.body.status
     );
     const response = ApiResponse.success(
-      'Friendship status updated',
+      FRIENDSHIPS_MESSAGES.FRIENDSHIP_STATUS_UPDATED,
       friendship
     );
     return res.status(response.statusCode).json(response);
@@ -101,7 +119,10 @@ export const friendshipsController = {
 
   remove: catchAsync(async (req: Request, res: Response) => {
     await friendshipsService.remove(req.user!.id, req.params.friendId);
-    const response = new ApiResponse(statusCodes.SUCCESS, 'Friendship deleted');
+    const response = new ApiResponse(
+      statusCodes.SUCCESS,
+      FRIENDSHIPS_MESSAGES.FRIENDSHIP_DELETED
+    );
     return res.status(response.statusCode).json(response);
   }),
 };

@@ -1,0 +1,16 @@
+export const POSTS_MESSAGES = {
+  ORIGINAL_POST_NOT_FOUND: 'Original post not found',
+  POST_NOT_FOUND: 'Post not found',
+  NEW_POST_TITLE: 'New Post',
+  NEW_POST_CONTENT: 'Your friend posted something new',
+  NEW_REPOST_TITLE: 'New Repost',
+  NEW_REPOST_CONTENT: 'Your friend reposted something new',
+  POST_CREATED: 'Post created successfully',
+  POSTS_FETCHED: 'Posts fetched successfully',
+  FEEDS_FETCHED: 'Feeds fetched successfully',
+  POST_UPDATED: 'Post updated successfully',
+  POST_DELETED: 'Post deleted successfully',
+  REACTIONS_FETCHED: 'Reactions fetched successfully',
+  POST_REACTED: 'Post reacted successfully',
+  REACTION_REMOVED: 'Reaction removed successfully',
+} as const;

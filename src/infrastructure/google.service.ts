@@ -1,8 +1,8 @@
 import { googleClient } from '@/config/google.js';
 import type { GoogleUserInfo } from '@/infrastructure/interfaces/googleUser.type.js';
 
-const googleService = () => {
-  const getUserInfo = async (authCode: string) => {
+const googleService = {
+  getUserInfo: async (authCode: string) => {
     const { tokens } = await googleClient.getToken(authCode);
     googleClient.setCredentials(tokens);
     const userInfoResponse: GoogleUserInfo = (
@@ -11,8 +11,7 @@ const googleService = () => {
       })
     ).data;
     return userInfoResponse;
-  };
-  return { getUserInfo };
+  },
 };
 
-export default googleService();
+export default googleService;

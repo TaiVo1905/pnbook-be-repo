@@ -3,6 +3,8 @@ import { validate } from '@/middlewares/validate.middleware.js';
 import { messagesController } from './messages.controller.js';
 import { messageSchema } from './schemas/message.schema.js';
 import { listConversationSchema } from './schemas/listConversation.schema.js';
+import { deleteMessageSchema } from './schemas/deleteMessage.schema.js';
+
 const messagesRoutes = Router();
 messagesRoutes.get('/conversations', messagesController.listConversations);
 messagesRoutes.get(
@@ -20,6 +22,12 @@ messagesRoutes.patch(
   validate(messageSchema),
   messagesController.updateText
 );
-messagesRoutes.delete('/messages/:id', messagesController.remove);
+messagesRoutes.delete(
+  '/messages/:id',
+  validate(deleteMessageSchema),
+  messagesController.remove
+);
+
+messagesRoutes.post('/messages/mark-as-read', messagesController.markAsRead);
 
 export default messagesRoutes;

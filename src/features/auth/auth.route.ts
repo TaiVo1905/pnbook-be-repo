@@ -4,6 +4,7 @@ import { googleAuthSchema } from '@/features/auth/schemas/googleAuth.schema.js';
 import { signInWithEmailSchema } from './schemas/signInWithEmail.schema.js';
 import { signUpWithEmailSchema } from './schemas/signUpWithEmail.schema.js';
 import { authController } from './auth.controller.js';
+import { authMiddleware } from '@/middlewares/auth.middleware.js';
 
 const authRoutes = Router();
 
@@ -24,5 +25,7 @@ authRoutes.post(
   validate(signUpWithEmailSchema),
   authController.signUpWithEmail
 );
+
+authRoutes.get('/sign-out', authMiddleware, authController.signOut);
 
 export default authRoutes;

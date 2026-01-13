@@ -84,4 +84,22 @@ export const authSchemas = {
       },
     },
   },
+  SignOutResponse: {
+    type: 'object',
+    properties: {
+      statusCode: {
+        type: 'number',
+        example: 200,
+      },
+      message: {
+        type: 'string',
+        example: 'User signed out successfully',
+      },
+      timestamp: {
+        type: 'string',
+        format: 'date-time',
+        example: '2025-12-30T04:40:26.830Z',
+      },
+    },
+  },
 };

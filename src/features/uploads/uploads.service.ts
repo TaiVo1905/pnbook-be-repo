@@ -1,24 +1,19 @@
-import type { PresignedUrlRequestDto } from './presignedUrlRequest.dto.js';
-import {
-  generateLimitedTimeUrl,
-  generateSignedUrl,
-} from '@/utils/signedUrl.util.js';
+import type { PresignedUrlRequestDto } from '@/shared/dtos/presignedUrlRequest.dto.js';
+import { awsS3Service } from '@/infrastructure/awsS3.service.js';
 
-const uploadsService = () => {
-  const getSignedUrl = async ({
-    filename,
-    mimeType,
-  }: PresignedUrlRequestDto) => {
-    const { key, url } = await generateSignedUrl({ filename, mimeType });
-    return { key, url };
-  };
+const uploadsService = {
+  getSignedUrl: async ({ filename, mimeType }: PresignedUrlRequestDto) => {
+    const { urlKey, url } = await awsS3Service.generateSignedUrl({
+      filename,
+      mimeType,
+    });
+    return { urlKey, url };
+  },
 
-  const getLimitedTimeUrl = async (key: string) => {
-    const url = await generateLimitedTimeUrl(key);
+  getLimitedTimeUrl: async (urlKey: string) => {
+    const url = await awsS3Service.generateLimitedTimeUrl(urlKey);
     return url;
-  };
-
-  return { getSignedUrl, getLimitedTimeUrl };
+  },
 };
 
-export default uploadsService();
+export default uploadsService;

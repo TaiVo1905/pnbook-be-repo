@@ -4,13 +4,15 @@ import authService from './auth.service.js';
 import { ApiResponse } from '@/core/apiResponse.js';
 import { statusCodes } from '@/core/statusCode.constant.js';
 import { setTokenCookie } from '@/utils/token.util.js';
+import { AUTH_MESSAGES } from './auth.messages.js';
 
 export const authController = {
   signUpWithEmail: catchAsync(async (req: Request, res: Response) => {
-    await authService.signUpWithEmail(req.body);
+    const user = await authService.signUpWithEmail(req.body);
     const response = new ApiResponse(
       statusCodes.CREATED,
-      'User registered successfully'
+      AUTH_MESSAGES.USER_REGISTERED_SUCCESSFULLY,
+      { id: user.id, email: user.email, name: user.name }
     );
     return res.status(response.statusCode).json(response);
   }),
@@ -22,7 +24,7 @@ export const authController = {
 
     const response = new ApiResponse(
       statusCodes.SUCCESS,
-      'User signed in successfully'
+      AUTH_MESSAGES.SUCCESSFUL_GOOGLE_AUTHENTICATION
     );
     return res.status(response.statusCode).json(response);
   }),
@@ -33,8 +35,21 @@ export const authController = {
     setTokenCookie(res, tokens);
     const response = new ApiResponse(
       statusCodes.SUCCESS,
-      'User signed in with Google successfully'
+      AUTH_MESSAGES.SUCCESSFUL_GOOGLE_AUTHENTICATION
     );
     return res.status(response.statusCode).json(response);
+  }),
+
+  signOut: catchAsync(async (req: Request, res: Response) => {
+    await authService.signOut(req.user.id);
+
+    res.clearCookie('accessToken');
+    res.clearCookie('refreshToken');
+
+    const apiResponse = new ApiResponse(
+      statusCodes.SUCCESS,
+      AUTH_MESSAGES.USER_SIGNED_OUT_SUCCESSFULLY
+    );
+    return res.status(apiResponse.statusCode).json(apiResponse);
   }),
 };

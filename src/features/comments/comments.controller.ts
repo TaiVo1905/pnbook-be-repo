@@ -3,6 +3,7 @@ import { catchAsync } from '@/utils/catchAsync.js';
 import commentsService from './comments.service.js';
 import { ApiResponse } from '@/core/apiResponse.js';
 import { statusCodes } from '@/core/statusCode.constant.js';
+import { COMMENTS_MESSAGES } from './comments.messages.js';
 
 export const commentsController = {
   create: catchAsync(async (req: Request, res: Response) => {
@@ -11,7 +12,10 @@ export const commentsController = {
       req.user!.id,
       req.body.content
     );
-    const response = ApiResponse.created('Comment created', comment);
+    const response = ApiResponse.created(
+      COMMENTS_MESSAGES.COMMENT_CREATED,
+      comment
+    );
     return res.status(response.statusCode).json(response);
   }),
 
@@ -23,11 +27,15 @@ export const commentsController = {
       page,
       limit
     );
-    const response = ApiResponse.paginated('Comments fetched', list, {
-      currentPage: page,
-      limit,
-      totalItems: count,
-    });
+    const response = ApiResponse.paginated(
+      COMMENTS_MESSAGES.COMMENTS_FETCHED,
+      list,
+      {
+        currentPage: page,
+        limit,
+        totalItems: count,
+      }
+    );
     return res.status(response.statusCode).json(response);
   }),
 
@@ -37,13 +45,19 @@ export const commentsController = {
       req.user!.id,
       req.body.content
     );
-    const response = ApiResponse.success('Comment updated', comment);
+    const response = ApiResponse.success(
+      COMMENTS_MESSAGES.COMMENT_UPDATED,
+      comment
+    );
     return res.status(response.statusCode).json(response);
   }),
 
   remove: catchAsync(async (req: Request, res: Response) => {
     await commentsService.remove(req.params.id, req.user!.id);
-    const response = new ApiResponse(statusCodes.SUCCESS, 'Comment deleted');
+    const response = new ApiResponse(
+      statusCodes.SUCCESS,
+      COMMENTS_MESSAGES.COMMENT_DELETED
+    );
     return res.status(response.statusCode).json(response);
   }),
 };

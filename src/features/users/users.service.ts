@@ -1,12 +1,14 @@
 import userRepository from '@/shared/repositories/user.repository.js';
 import { NotFoundError } from '@/core/apiError.js';
-import type { UserResponse } from '@/features/users/User.response.js';
-import type { UpdatedUserRequest } from './dtos/updatedUserRequest.dto.js';
+import { USERS_MESSAGES } from './users.messages.js';
+import type { UserResponse } from './user.response.js';
+import type { UpdateUserRequest } from './dtos/updateUserRequest.dto.js';
 
-const usersService = () => {
-  const getById = async (id: string): Promise<UserResponse> => {
+const usersService = {
+  getById: async (id: string): Promise<UserResponse> => {
     const user = await userRepository.findById(id);
-    if (!user || user.deletedAt) throw new NotFoundError('User not found');
+    if (!user || user.deletedAt)
+      throw new NotFoundError(USERS_MESSAGES.USER_NOT_FOUND);
     const userResponse: UserResponse = {
       id: user.id,
       name: user.name,
@@ -15,12 +17,12 @@ const usersService = () => {
       createdAt: user.createdAt.toISOString(),
     };
     return userResponse;
-  };
+  },
 
-  const updateById = async (
-    updatedUserRequest: UpdatedUserRequest
+  updateById: async (
+    updatedUserRequest: UpdateUserRequest
   ): Promise<UserResponse> => {
-    await getById(updatedUserRequest.userId);
+    await usersService.getById(updatedUserRequest.userId);
     const updatedUser = await userRepository.updateById(
       updatedUserRequest.userId,
       updatedUserRequest.data
@@ -33,9 +35,18 @@ const usersService = () => {
       createdAt: updatedUser.createdAt.toISOString(),
     };
     return userResponse;
-  };
+  },
 
-  return { getById, updateById };
+  getSuggestions: async (userId: string): Promise<UserResponse[]> => {
+    const suggestions = await userRepository.findSuggestions(userId);
+    return suggestions.map((user) => ({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      avatarUrl: user.avatarUrl || null,
+      createdAt: user.createdAt.toISOString(),
+    }));
+  },
 };
 
-export default usersService();
+export default usersService;

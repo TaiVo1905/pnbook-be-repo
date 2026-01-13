@@ -2,6 +2,6 @@ import { z } from 'zod';
 
 export const limitedTimeUrlSchema = z.object({
   body: z.object({
-    key: z.string().min(1),
+    urlKey: z.string().min(1, 'URL key is required'),
   }),
 });

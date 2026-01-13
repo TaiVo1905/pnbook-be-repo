@@ -1,19 +1,19 @@
+import type {
+  CreateNotificationParams,
+  ListNotificationsParams,
+  MarkAsReadParams,
+} from '@/shared/dtos/repositories/notification.repository.dto.js';
 import { prisma } from '@/utils/prisma.js';
 import firestoreService from '@/infrastructure/firestore.service.js';
 
-const notificationRepository = () => {
-  const create = async (data: {
-    receiverId: string;
-    title: string;
-    content: string;
-    targetDetails?: string;
-  }) => {
+const notificationRepository = {
+  create: async (createNotificationParams: CreateNotificationParams) => {
     const notification = await prisma.notification.create({
       data: {
-        receiverId: data.receiverId,
-        title: data.title,
-        content: data.content,
-        targetDetails: data.targetDetails || null,
+        receiverId: createNotificationParams.receiverId,
+        title: createNotificationParams.title,
+        content: createNotificationParams.content,
+        targetDetails: createNotificationParams.targetDetails || null,
       },
     });
 
@@ -22,35 +22,38 @@ const notificationRepository = () => {
       receiverId: notification.receiverId,
       title: notification.title,
       content: notification.content,
-      targetDetails: notification.targetDetails || undefined,
+      targetDetails: notification.targetDetails || null,
     });
 
     return notification;
-  };
+  },
 
-  const listMine = async (userId: string, page = 1, limit = 20) => {
+  listMine: async (listNotificationsParams: ListNotificationsParams) => {
     const [list, count] = await Promise.all([
       prisma.notification.findMany({
-        where: { receiverId: userId, deletedAt: null },
+        where: { receiverId: listNotificationsParams.userId, deletedAt: null },
         orderBy: { createdAt: 'desc' },
-        skip: (page - 1) * limit,
-        take: limit,
+        skip:
+          (listNotificationsParams.page - 1) * listNotificationsParams.limit,
+        take: listNotificationsParams.limit,
       }),
       prisma.notification.count({
-        where: { receiverId: userId, deletedAt: null },
+        where: { receiverId: listNotificationsParams.userId, deletedAt: null },
       }),
     ]);
     return { list, count };
-  };
+  },
 
-  const markAsRead = async (id: string, userId: string) => {
+  markAsRead: async (markAsReadParams: MarkAsReadParams) => {
     return await prisma.notification.updateMany({
-      where: { id, receiverId: userId, deletedAt: null },
+      where: {
+        id: markAsReadParams.id,
+        receiverId: markAsReadParams.userId,
+        deletedAt: null,
+      },
       data: { isRead: true },
     });
-  };
-
-  return { create, listMine, markAsRead };
+  },
 };
 
-export default notificationRepository();
+export default notificationRepository;

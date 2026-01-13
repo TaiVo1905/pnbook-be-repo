@@ -134,3 +134,26 @@
  *             schema:
  *               $ref: '#/components/schemas/DeleteMessageResponse'
  */
+
+/**
+ * @swagger
+ * /messages/mark-as-read:
+ *   post:
+ *     tags: [Messages]
+ *     summary: Mark messages as read
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/MarkAsReadRequest'
+ *     responses:
+ *       200:
+ *         description: Messages marked as read
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/MessageResponse'
+ */

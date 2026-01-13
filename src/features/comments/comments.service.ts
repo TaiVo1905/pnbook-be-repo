@@ -1,26 +1,30 @@
 import commentRepository from '@/shared/repositories/comment.repository.js';
 import postRepository from '@/shared/repositories/post.repository.js';
 import notificationRepository from '@/shared/repositories/notification.repository.js';
-import { ForbiddenError, NotFoundError } from '@/core/apiError.js';
+import { NotFoundError } from '@/core/apiError.js';
+import {
+  checkOwnership,
+  checkDeletePermission,
+} from '@/utils/authorization.util.js';
+import { COMMENTS_MESSAGES } from './comments.messages.js';
 
-const commentsService = () => {
-  const create = async (
-    postId: string,
-    commenterId: string,
-    content: string
-  ) => {
-    const comment = await commentRepository.create(
+const commentsService = {
+  create: async (postId: string, commenterId: string, content: string) => {
+    const comment = await commentRepository.create({
       postId,
       commenterId,
-      content
-    );
+      content,
+    });
 
-    const post = await postRepository.getById(postId);
+    const post = await postRepository.getById({
+      id: postId,
+      userId: commenterId,
+    });
     if (post && post.posterId !== commenterId) {
       await notificationRepository.create({
         receiverId: post.posterId,
-        title: 'New Comment',
-        content: 'Someone commented on your post',
+        title: COMMENTS_MESSAGES.NEW_COMMENT_TITLE,
+        content: COMMENTS_MESSAGES.NEW_COMMENT_CONTENT,
         targetDetails: JSON.stringify({
           postId,
           commentId: comment.id,
@@ -30,32 +34,29 @@ const commentsService = () => {
     }
 
     return comment;
-  };
-  const listByPost = async (postId: string, page = 1, limit = 20) => {
-    const { list, count } = await commentRepository.listByPost(
+  },
+  listByPost: async (postId: string, page = 1, limit = 20) => {
+    const { list, count } = await commentRepository.listByPost({
       postId,
       page,
-      limit
-    );
+      limit,
+    });
     return { list, count };
-  };
-  const update = async (id: string, actorId: string, content: string) => {
+  },
+  update: async (id: string, actorId: string, content: string) => {
     const comment = await commentRepository.getById(id);
     if (!comment || comment.deletedAt)
-      throw new NotFoundError('Comment not found');
-    if (comment.commenterId !== actorId)
-      throw new ForbiddenError("Cannot edit others' comment");
-    return await commentRepository.update(id, content);
-  };
-  const remove = async (id: string, actorId: string) => {
+      throw new NotFoundError(COMMENTS_MESSAGES.COMMENT_NOT_FOUND);
+    checkOwnership(comment.commenterId, actorId, 'comment');
+    return await commentRepository.update({ id, content });
+  },
+  remove: async (id: string, actorId: string) => {
     const comment = await commentRepository.getById(id);
     if (!comment || comment.deletedAt)
-      throw new NotFoundError('Comment not found');
-    if (comment.commenterId !== actorId)
-      throw new ForbiddenError("Cannot delete others' comment");
+      throw new NotFoundError(COMMENTS_MESSAGES.COMMENT_NOT_FOUND);
+    checkDeletePermission(comment.commenterId, actorId, 'comment');
     return await commentRepository.remove(id);
-  };
-  return { create, listByPost, update, remove };
+  },
 };
 
-export default commentsService();
+export default commentsService;
