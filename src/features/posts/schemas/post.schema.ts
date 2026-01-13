@@ -9,7 +9,7 @@ export const postSchema = z.object({
     attachments: z
       .array(
         z.object({
-          key: z.string().min(1),
+          attachmentUrl: z.string().min(1),
           type: z.enum(['image', 'video', 'audio']),
         })
       )

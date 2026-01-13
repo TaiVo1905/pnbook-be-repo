@@ -8,7 +8,10 @@ import { NotFoundError } from './core/apiError.js';
 import cors from 'cors';
 
 const corsOptions = {
-  origin: ['http://localhost:5173'],
+  origin: [
+    'http://localhost:5173',
+    'http://pnbook.s3-website-ap-southeast-1.amazonaws.com',
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],

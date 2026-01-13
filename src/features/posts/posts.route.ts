@@ -15,7 +15,7 @@ postsRoutes.get(
   validate(getPostSchema),
   postsController.getByPoster
 );
-postsRoutes.get('/feeds', validate(getPostSchema), postsController.getFeeds);
+postsRoutes.get('/feeds', postsController.getFeeds);
 postsRoutes.get('/posts/:id', validate(getPostSchema), postsController.getById);
 postsRoutes.get(
   '/posts/:id/reactions',

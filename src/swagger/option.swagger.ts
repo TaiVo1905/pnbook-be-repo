@@ -54,6 +54,6 @@ const option = {
     },
     security: [{ BearerAuth: [] }],
   },
-  apis: ['src*.swagger.ts'],
+  apis: ['src/**/*.swagger.ts'],
 };
 export default option;
