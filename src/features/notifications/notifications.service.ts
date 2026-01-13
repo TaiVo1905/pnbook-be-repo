@@ -1,19 +1,19 @@
 import notificationRepository from '@/shared/repositories/notification.repository.js';
+import type { listNotificationRequestDto } from './dtos/listNotificationRequest.dto.js';
+import type { MarkAsReadPayRequestDto } from './dtos/MarkAsReadRequest.dto.js';
 
-const notificationsService = () => {
-  const listMine = async (userId: string, page = 1, limit = 20) => {
+const notificationsService = {
+  listMine: async (listNotificationPayload: listNotificationRequestDto) => {
     const { list, count } = await notificationRepository.listMine(
-      userId,
-      page,
-      limit
+      listNotificationPayload
     );
     return { list, count };
-  };
-  const markAsRead = async (id: string, userId: string) => {
-    const result = await notificationRepository.markAsRead(id, userId);
+  },
+
+  markAsRead: async (markAsReadPayload: MarkAsReadPayRequestDto) => {
+    const result = await notificationRepository.markAsRead(markAsReadPayload);
     return result;
-  };
-  return { listMine, markAsRead };
+  },
 };
 
-export default notificationsService();
+export default notificationsService;

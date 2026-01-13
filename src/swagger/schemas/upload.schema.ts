@@ -27,7 +27,7 @@ export const uploadSchemas = {
       data: {
         type: 'object',
         properties: {
-          key: {
+          urlKey: {
             type: 'string',
             example: 'uploads/1234567890-image.png',
           },
@@ -47,9 +47,9 @@ export const uploadSchemas = {
   },
   LimitedTimeUrlRequest: {
     type: 'object',
-    required: ['key'],
+    required: ['urlKey'],
     properties: {
-      key: {
+      urlKey: {
         type: 'string',
         example: 'uploads/1234567890-image.png',
       },

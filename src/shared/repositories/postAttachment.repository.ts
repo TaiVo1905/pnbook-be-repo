@@ -1,39 +1,33 @@
+import type {
+  CreateAttachmentParams,
+  CreateManyAttachmentsParams,
+} from '@/shared/dtos/repositories/postAttachment.repository.dto.js';
 import { prisma } from '@/utils/prisma.js';
 
-const postAttachmentRepository = () => {
-  const create = async (
-    postId: string,
-    attachmentUrl: string,
-    attachmentType: 'image' | 'video' | 'audio'
-  ) => {
+const postAttachmentRepository = {
+  create: async (createAttachmentParams: CreateAttachmentParams) => {
     return await prisma.postAttachment.create({
-      data: { postId, attachmentUrl, attachmentType },
+      data: { ...createAttachmentParams },
     });
-  };
+  },
 
-  const createMany = async (
-    postId: string,
-    attachments: Array<{
-      attachmentUrl: string;
-      type: 'image' | 'video' | 'audio';
-    }>
+  createMany: async (
+    createManyAttachmentsParams: CreateManyAttachmentsParams
   ) => {
     return await prisma.postAttachment.createMany({
-      data: attachments.map((a) => ({
-        postId,
+      data: createManyAttachmentsParams.attachments.map((a) => ({
+        postId: createManyAttachmentsParams.postId,
         attachmentUrl: a.attachmentUrl,
-        attachmentType: a.type,
+        attachmentType: a.attachmentType,
       })),
     });
-  };
+  },
 
-  const getById = async (postId: string) => {
+  getById: async (postId: string) => {
     return await prisma.postAttachment.findMany({
       where: { postId, deletedAt: null },
     });
-  };
-
-  return { create, createMany, getById };
+  },
 };
 
-export default postAttachmentRepository();
+export default postAttachmentRepository;

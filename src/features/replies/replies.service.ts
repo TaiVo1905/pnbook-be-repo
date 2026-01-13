@@ -1,61 +1,66 @@
 import replyRepository from '@/shared/repositories/reply.repository.js';
 import commentRepository from '@/shared/repositories/comment.repository.js';
 import notificationRepository from '@/shared/repositories/notification.repository.js';
-import { ForbiddenError, NotFoundError } from '@/core/apiError.js';
+import { NotFoundError } from '@/core/apiError.js';
+import {
+  checkOwnership,
+  checkDeletePermission,
+} from '@/utils/authorization.util.js';
+import type { CreateReplyRequestDto } from './dtos/createReplyRequest.dto.js';
+import type { GetRepliesRequestDto } from './dtos/getRepliesRequest.dto.js';
+import type { UpdateReplyRequestDto } from './dtos/updateReplyRequest.dto.js';
+import { REPLIES_MESSAGES } from './replies.messages.js';
 
-const repliesService = () => {
-  const create = async (
-    commentId: string,
-    replierId: string,
-    content: string
-  ) => {
-    if (!(await commentRepository.getById(commentId))) {
-      throw new NotFoundError('Comment not found');
+const repliesService = {
+  create: async (createReplyPayload: CreateReplyRequestDto) => {
+    if (!(await commentRepository.getById(createReplyPayload.commentId))) {
+      throw new NotFoundError(REPLIES_MESSAGES.COMMENT_NOT_FOUND);
     }
 
-    const reply = await replyRepository.create(commentId, replierId, content);
+    const reply = await replyRepository.create(createReplyPayload);
 
-    const comment = await commentRepository.getById(commentId);
-    if (comment && comment.commenterId !== replierId) {
+    const comment = await commentRepository.getById(
+      createReplyPayload.commentId
+    );
+    if (comment && comment.commenterId !== createReplyPayload.replierId) {
       await notificationRepository.create({
         receiverId: comment.commenterId,
-        title: 'New Reply',
-        content: 'Someone replied to your comment',
+        title: REPLIES_MESSAGES.NEW_REPLY_TITLE,
+        content: REPLIES_MESSAGES.NEW_REPLY_CONTENT,
         targetDetails: JSON.stringify({
-          commentId,
+          commentId: createReplyPayload.commentId,
           replyId: reply.id,
-          replierId,
+          replierId: createReplyPayload.replierId,
         }),
       });
     }
 
     return reply;
-  };
-  const listByComment = async (commentId: string, page = 1, limit = 20) => {
-    const { list, count } = await replyRepository.listByComment(
-      commentId,
-      page,
-      limit
-    );
+  },
+  listByComment: async (getRepliesRequestDto: GetRepliesRequestDto) => {
+    const { list, count } =
+      await replyRepository.listByComment(getRepliesRequestDto);
     return { list, count };
-  };
+  },
 
-  const update = async (id: string, actorId: string, content: string) => {
-    const reply = await replyRepository.getById(id);
-    if (!reply || reply.deletedAt) throw new NotFoundError('Reply not found');
-    if (reply.replierId !== actorId)
-      throw new ForbiddenError("Cannot edit others' reply");
-    return await replyRepository.update(id, content);
-  };
+  update: async (updateReplyRequestDto: UpdateReplyRequestDto) => {
+    const reply = await replyRepository.getById(updateReplyRequestDto.replyId);
+    if (!reply || reply.deletedAt)
+      throw new NotFoundError(REPLIES_MESSAGES.REPLY_NOT_FOUND);
+    checkOwnership(reply.replierId, updateReplyRequestDto.replierId, 'reply');
+    return await replyRepository.update({
+      id: updateReplyRequestDto.replyId,
+      content: updateReplyRequestDto.content,
+    });
+  },
 
-  const remove = async (id: string, actorId: string) => {
+  remove: async (id: string, actorId: string) => {
     const reply = await replyRepository.getById(id);
-    if (!reply || reply.deletedAt) throw new NotFoundError('Reply not found');
-    if (reply.replierId !== actorId)
-      throw new ForbiddenError("Cannot delete others' reply");
+    if (!reply || reply.deletedAt)
+      throw new NotFoundError(REPLIES_MESSAGES.REPLY_NOT_FOUND);
+    checkDeletePermission(reply.replierId, actorId, 'reply');
     await replyRepository.remove(id);
-  };
-  return { create, listByComment, update, remove };
+  },
 };
 
-export default repliesService();
+export default repliesService;

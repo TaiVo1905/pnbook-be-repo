@@ -7,6 +7,7 @@ import refreshTokenRepository from '@/shared/repositories/refreshToken.repositor
 import googleService from '@/infrastructure/google.service.js';
 import type { AuthRequestDto } from './authRequest.dto.js';
 import { BadRequestError, UnauthorizedError } from '@/core/apiError.js';
+import { AUTH_MESSAGES } from './auth.messages.js';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/utils/prisma.js';
 import socialAccountRepository from '@/shared/repositories/socialAccount.repository.js';
@@ -17,52 +18,62 @@ const generateAndStoreTokens = async (userId: string) => {
   const accessToken = generateAccessToken(userId);
   const refreshToken = generateRefreshToken();
 
-  await refreshTokenRepository.createRefreshToken(userId, refreshToken);
+  await refreshTokenRepository.create({ userId, token: refreshToken });
   return { accessToken, refreshToken };
 };
-const authService = () => {
-  const signUpWithEmail = async (data: AuthRequestDto): Promise<void> => {
+const authService = {
+  signUpWithEmail: async (data: AuthRequestDto) => {
     const existingUser = await userRepository.findByEmail(data.email);
 
     if (existingUser) {
-      throw new BadRequestError('Email already exists');
+      throw new BadRequestError(AUTH_MESSAGES.EMAIL_ALREADY_EXISTS);
     }
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(data.password, salt);
 
-    await userRepository.create({
+    const user = await userRepository.create({
       name: data.name!,
       email: data.email,
       password: hashedPassword,
     });
-  };
-  const signInWithEmail = async (payload: AuthRequestDto) => {
+
+    return user;
+  },
+
+  signInWithEmail: async (payload: AuthRequestDto) => {
     const { email, password } = payload;
 
     const user = await userRepository.findByEmail(email);
 
     if (!user || !user.password) {
-      throw new UnauthorizedError('Invalid email or password');
+      throw new UnauthorizedError(AUTH_MESSAGES.INVALID_EMAIL_OR_PASSWORD);
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
-      throw new UnauthorizedError('Invalid email or password');
+      throw new UnauthorizedError(AUTH_MESSAGES.INVALID_EMAIL_OR_PASSWORD);
     }
 
     const { accessToken, refreshToken } = await generateAndStoreTokens(user.id);
 
     return { accessToken, refreshToken };
-  };
+  },
 
-  const googleAuth = async (authCode: string) => {
+  googleAuth: async (authCode: string) => {
     const userInfoResponse = await googleService.getUserInfo(authCode);
+
+    if (!userInfoResponse?.email.includes('.passerellesnumeriques.org')) {
+      throw new UnauthorizedError(AUTH_MESSAGES.INVALID_GOOGLE_ACCOUNT);
+    }
 
     const user = await prisma.$transaction(async (tx) => {
       const socialAccount = await socialAccountRepository.findSocialAccount(
-        userInfoResponse.sub,
+        {
+          provider: 'google',
+          providerId: userInfoResponse.sub,
+        },
         tx
       );
 
@@ -71,9 +82,12 @@ const authService = () => {
       if (!socialAccount) {
         user = await userRepository.upsertWithGoogleAuth(userInfoResponse, tx);
 
-        await socialAccountRepository.createNewSocialAccount(
-          user.id,
-          userInfoResponse,
+        await socialAccountRepository.create(
+          {
+            userId: user.id,
+            provider: 'google',
+            providerId: userInfoResponse.sub,
+          },
           tx
         );
 
@@ -90,9 +104,11 @@ const authService = () => {
     const { accessToken, refreshToken } = await generateAndStoreTokens(user.id);
 
     return { accessToken, refreshToken };
-  };
+  },
 
-  return { signUpWithEmail, signInWithEmail, googleAuth };
+  signOut: async (userId: string): Promise<void> => {
+    await refreshTokenRepository.deleteAllUserRefreshTokens(userId);
+  },
 };
 
-export default authService();
+export default authService;

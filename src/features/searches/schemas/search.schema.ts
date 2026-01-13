@@ -7,20 +7,19 @@ export const searchSchema = z.object({
       .min(1, 'Keyword is required')
       .max(100, 'Keyword must be less than 100 characters')
       .trim(),
-    page: z.coerce.number().int().positive().optional().default(1),
-    limit: z.coerce.number().int().positive().max(100).optional().default(20),
-  }),
-});
 
-export const getHistorySchema = z.object({
-  query: z.object({
-    page: z.coerce.number().int().positive().optional().default(1),
-    limit: z.coerce.number().int().positive().max(100).optional().default(20),
-  }),
-});
-
-export const deleteHistorySchema = z.object({
-  params: z.object({
-    id: z.string().uuid('Invalid history ID'),
+    page: z.coerce
+      .number('page must be a number')
+      .int('page must be an integer')
+      .positive('page must be greater than 0')
+      .optional()
+      .default(1),
+    limit: z.coerce
+      .number('limit must be a number')
+      .int('limit must be an integer')
+      .positive('limit must be greater than 0')
+      .max(100)
+      .optional()
+      .default(20),
   }),
 });

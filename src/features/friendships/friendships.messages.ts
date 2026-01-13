@@ -1,0 +1,15 @@
+export const FRIENDSHIPS_MESSAGES = {
+  CANNOT_SEND_TO_SELF: 'Cannot send friend request to yourself',
+  ALREADY_FRIENDS: 'You are already friends with this user',
+  FRIEND_REQUEST_TITLE: 'Friend Request',
+  FRIEND_REQUEST_SENT_CONTENT: 'Someone sent you a friend request',
+  NEW_FRIEND_REQUEST_TITLE: 'New Friend Request',
+  NEW_FRIEND_REQUEST_CONTENT: 'You have received a new friend request',
+  REQUEST_ACCEPTED_TITLE: 'Friend Request Accepted',
+  REQUEST_ACCEPTED_CONTENT: 'Your friend request was accepted',
+  FRIENDS_FETCHED: 'Friends fetched successfully',
+  FRIEND_REQUESTS_FETCHED: 'Friend requests fetched successfully',
+  REQUEST_REJECTED_CONTENT: 'Friend request rejected/cancelled successfully',
+  FRIENDSHIP_STATUS_UPDATED: 'Friendship status updated successfully',
+  FRIENDSHIP_DELETED: 'Friendship deleted successfully',
+} as const;

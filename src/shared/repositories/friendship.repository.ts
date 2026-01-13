@@ -1,169 +1,194 @@
+import type {
+  FriendshipStatusParams,
+  ListFriendsParams,
+  FriendRequestParams,
+} from '@/shared/dtos/repositories/friendship.repository.dto.js';
 import { NotFoundError } from '@/core/apiError.js';
 import { prisma } from '@/utils/prisma.js';
 
-const friendshipRepository = () => {
-  const listFriendsOfUser = async (userId: string, page = 1, limit = 20) => {
+const friendshipRepository = {
+  listFriendsOfUser: async (listFriendsParams: ListFriendsParams) => {
     const [list, count] = await Promise.all([
       prisma.friendList.findMany({
-        where: { userId, deletedAt: null },
+        where: { userId: listFriendsParams.userId, deletedAt: null },
         include: { friend: true },
         orderBy: { createdAt: 'desc' },
-        skip: (page - 1) * limit,
-        take: limit,
+        skip: (listFriendsParams.page - 1) * listFriendsParams.limit,
+        take: listFriendsParams.limit,
       }),
       prisma.friendList.count({
-        where: { userId, deletedAt: null },
+        where: { userId: listFriendsParams.userId, deletedAt: null },
       }),
     ]);
     return { list, count };
-  };
+  },
 
-  const listMyFriends = async (userId: string, page = 1, limit = 20) =>
-    listFriendsOfUser(userId, page, limit);
+  listMyFriends: async (listFriendsParams: ListFriendsParams) =>
+    friendshipRepository.listFriendsOfUser(listFriendsParams),
 
-  const listFriendRequests = async (userId: string, page = 1, limit = 20) => {
+  listFriendRequests: async (listFriendsParams: ListFriendsParams) => {
     const [list, count] = await Promise.all([
       prisma.friendRequest.findMany({
-        where: { addresseeId: userId, deletedAt: null },
+        where: { addresseeId: listFriendsParams.userId, deletedAt: null },
         include: { requester: true },
         orderBy: { createdAt: 'desc' },
-        skip: (page - 1) * limit,
-        take: limit,
+        skip: (listFriendsParams.page - 1) * listFriendsParams.limit,
+        take: listFriendsParams.limit,
       }),
       prisma.friendRequest.count({
-        where: { addresseeId: userId, deletedAt: null },
+        where: { addresseeId: listFriendsParams.userId, deletedAt: null },
       }),
     ]);
     return { list, count };
-  };
+  },
 
-  const sendFriendRequest = async (
-    requesterId: string,
-    addresseeId: string
-  ) => {
+  sendFriendRequest: async (friendRequestParams: FriendRequestParams) => {
     return await prisma.friendRequest.create({
-      data: { requesterId, addresseeId },
+      data: { ...friendRequestParams },
     });
-  };
+  },
 
-  const acceptFriendRequest = async (
-    requesterId: string,
-    addresseeId: string
-  ) => {
+  acceptFriendRequest: async (friendRequestParams: FriendRequestParams) => {
     return await prisma.$transaction(async (tx) => {
       const fr = await tx.friendRequest.findUnique({
-        where: { requesterId_addresseeId: { requesterId, addresseeId } },
+        where: { requesterId_addresseeId: { ...friendRequestParams } },
       });
       if (!fr || fr.deletedAt) {
         throw new NotFoundError('Friend request not found');
       }
 
       await tx.friendRequest.update({
-        where: { requesterId_addresseeId: { requesterId, addresseeId } },
+        where: { requesterId_addresseeId: { ...friendRequestParams } },
         data: { deletedAt: new Date() },
       });
 
       await tx.friendList.upsert({
         where: {
-          userId_friendId: { userId: addresseeId, friendId: requesterId },
+          userId_friendId: {
+            userId: friendRequestParams.addresseeId,
+            friendId: friendRequestParams.requesterId,
+          },
         },
         update: { status: 'accepted', deletedAt: null },
         create: {
-          userId: addresseeId,
-          friendId: requesterId,
+          userId: friendRequestParams.addresseeId,
+          friendId: friendRequestParams.requesterId,
           status: 'accepted',
         },
       });
       await tx.friendList.upsert({
         where: {
-          userId_friendId: { userId: requesterId, friendId: addresseeId },
+          userId_friendId: {
+            userId: friendRequestParams.requesterId,
+            friendId: friendRequestParams.addresseeId,
+          },
         },
         update: { status: 'accepted', deletedAt: null },
         create: {
-          userId: requesterId,
-          friendId: addresseeId,
+          userId: friendRequestParams.requesterId,
+          friendId: friendRequestParams.addresseeId,
           status: 'accepted',
         },
       });
 
-      return { accepted: true, requesterId, addresseeId };
+      return {
+        accepted: true,
+        requesterId: friendRequestParams.requesterId,
+        addresseeId: friendRequestParams.addresseeId,
+      };
     });
-  };
+  },
 
-  const rejectFriendRequest = async (
-    requesterId: string,
-    addresseeId: string
-  ) => {
-    return await prisma.friendRequest.updateMany({
-      where: { requesterId, addresseeId, deletedAt: null },
-      data: { deletedAt: new Date() },
+  rejectFriendRequest: async (friendRequestParams: FriendRequestParams) => {
+    return await prisma.friendRequest.deleteMany({
+      where: {
+        OR: [
+          {
+            requesterId: friendRequestParams.requesterId,
+            addresseeId: friendRequestParams.addresseeId,
+            deletedAt: null,
+          },
+          {
+            requesterId: friendRequestParams.addresseeId,
+            addresseeId: friendRequestParams.requesterId,
+            deletedAt: null,
+          },
+        ],
+      },
     });
-  };
+  },
 
-  const updateFriendshipStatus = async (
-    userId: string,
-    friendId: string,
-    status: 'accepted' | 'block'
+  updateFriendshipStatus: async (
+    friendshipStatusParams: FriendshipStatusParams
   ) => {
     const [primary] = await prisma.$transaction([
       prisma.friendList.upsert({
-        where: { userId_friendId: { userId, friendId } },
-        update: { status },
-        create: { userId, friendId, status },
+        where: {
+          userId_friendId: {
+            userId: friendshipStatusParams.userId,
+            friendId: friendshipStatusParams.friendId,
+          },
+        },
+        update: { status: friendshipStatusParams.status! },
+        create: {
+          userId: friendshipStatusParams.userId,
+          friendId: friendshipStatusParams.friendId,
+          status: friendshipStatusParams.status!,
+        },
       }),
       prisma.friendList.upsert({
-        where: { userId_friendId: { userId: friendId, friendId: userId } },
-        update: { status },
-        create: { userId: friendId, friendId: userId, status },
+        where: {
+          userId_friendId: {
+            userId: friendshipStatusParams.friendId,
+            friendId: friendshipStatusParams.userId,
+          },
+        },
+        update: { status: friendshipStatusParams.status },
+        create: {
+          userId: friendshipStatusParams.friendId,
+          friendId: friendshipStatusParams.userId,
+          status: friendshipStatusParams.status!,
+        },
       }),
     ]);
     return primary;
-  };
+  },
 
-  const deleteFriendship = async (userId: string, friendId: string) => {
+  deleteFriendship: async (friendshipStatusParams: FriendshipStatusParams) => {
     const deletedAt = new Date();
     const [primaryFriendship] = await prisma.$transaction([
       prisma.friendList.update({
-        where: { userId_friendId: { userId, friendId } },
+        where: { userId_friendId: { ...friendshipStatusParams } },
         data: { deletedAt },
       }),
       prisma.friendList.updateMany({
         where: {
-          userId: friendId,
-          friendId: userId,
+          userId: friendshipStatusParams.friendId,
+          friendId: friendshipStatusParams.userId,
           deletedAt: null,
         },
         data: { deletedAt },
       }),
     ]);
     return primaryFriendship;
-  };
+  },
 
-  const areFriends = async (userId: string, friendId: string) => {
+  areFriends: async (friendshipStatusParams: FriendshipStatusParams) => {
     const friendship = await prisma.friendList.findFirst({
       where: {
         OR: [
-          { userId, friendId },
-          { userId: friendId, friendId: userId },
+          { ...friendshipStatusParams },
+          {
+            userId: friendshipStatusParams.friendId,
+            friendId: friendshipStatusParams.userId,
+          },
         ],
         status: 'accepted',
         deletedAt: null,
       },
     });
     return !!friendship;
-  };
-
-  return {
-    listFriendsOfUser,
-    listMyFriends,
-    listFriendRequests,
-    sendFriendRequest,
-    acceptFriendRequest,
-    rejectFriendRequest,
-    updateFriendshipStatus,
-    deleteFriendship,
-    areFriends,
-  };
+  },
 };
 
-export default friendshipRepository();
+export default friendshipRepository;

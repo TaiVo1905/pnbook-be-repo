@@ -1,42 +1,63 @@
+import type {
+  CreateReplyParams,
+  ListRepliesParams,
+  UpdateReplyParams,
+} from '@/shared/dtos/repositories/reply.repository.dto.js';
 import { prisma } from '@/utils/prisma.js';
 
-const replyRepository = () => {
-  const create = async (
-    commentId: string,
-    replierId: string,
-    content: string
-  ) => {
+const replyRepository = {
+  create: async (createReplyParams: CreateReplyParams) => {
     return await prisma.reply.create({
-      data: { commentId, replierId, content },
+      data: { ...createReplyParams },
+      include: {
+        replier: { select: { id: true, name: true, avatarUrl: true } },
+      },
     });
-  };
-  const listByComment = async (commentId: string, page = 1, limit = 20) => {
+  },
+
+  listByComment: async (listRepliesParams: ListRepliesParams) => {
     const [list, count] = await Promise.all([
       prisma.reply.findMany({
-        where: { commentId, deletedAt: null },
+        where: { commentId: listRepliesParams.commentId, deletedAt: null },
+        include: {
+          replier: { select: { id: true, name: true, avatarUrl: true } },
+        },
         orderBy: { createdAt: 'desc' },
-        skip: (page - 1) * limit,
-        take: limit,
+        skip: (listRepliesParams.page - 1) * listRepliesParams.limit,
+        take: listRepliesParams.limit,
       }),
       prisma.reply.count({
-        where: { commentId, deletedAt: null },
+        where: { commentId: listRepliesParams.commentId, deletedAt: null },
       }),
     ]);
     return { list, count };
-  };
-  const getById = async (id: string) => {
-    return await prisma.reply.findUnique({ where: { id } });
-  };
-  const update = async (id: string, content: string) => {
-    return await prisma.reply.update({ where: { id }, data: { content } });
-  };
-  const remove = async (id: string) => {
+  },
+
+  getById: async (id: string) => {
+    return await prisma.reply.findUnique({
+      where: { id },
+      include: {
+        replier: { select: { id: true, name: true, avatarUrl: true } },
+      },
+    });
+  },
+
+  update: async (updateReplyParams: UpdateReplyParams) => {
+    return await prisma.reply.update({
+      where: { id: updateReplyParams.id },
+      data: { content: updateReplyParams.content },
+      include: {
+        replier: { select: { id: true, name: true, avatarUrl: true } },
+      },
+    });
+  },
+
+  remove: async (id: string) => {
     return await prisma.reply.update({
       where: { id },
       data: { deletedAt: new Date() },
     });
-  };
-  return { create, listByComment, getById, update, remove };
+  },
 };
 
-export default replyRepository();
+export default replyRepository;

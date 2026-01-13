@@ -1,7 +1,10 @@
 import { z } from 'zod';
 export const postSchema = z.object({
   body: z.object({
-    content: z.string().min(1),
+    content: z
+      .string()
+      .min(1, 'Content is required')
+      .max(50000, 'Content is too long'),
     originalPostId: z.uuid().optional(),
     attachments: z
       .array(
@@ -10,7 +13,7 @@ export const postSchema = z.object({
           type: z.enum(['image', 'video', 'audio']),
         })
       )
-      .max(10)
+      .max(10, 'Attachments cannot exceed 10 items')
       .optional(),
   }),
 });

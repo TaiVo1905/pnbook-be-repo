@@ -1,63 +1,78 @@
+import type {
+  ListConversationParams,
+  ListConversationsParams,
+  CreateMessageParams,
+  UpdateMessageParams,
+} from '@/shared/dtos/repositories/message.repository.dto.js';
 import { prisma } from '@/utils/prisma.js';
 
-const messageRepository = () => {
-  const listConversation = async (
-    senderId: string,
-    receiverId: string,
-    page = 1,
-    limit = 50
-  ) => {
+const messageRepository = {
+  listConversation: async (listConversationParams: ListConversationParams) => {
     const [messages, totalItems] = await Promise.all([
       prisma.message.findMany({
         where: {
           OR: [
-            { senderId, receiverId },
-            { senderId: receiverId, receiverId: senderId },
+            {
+              senderId: listConversationParams.senderId,
+              receiverId: listConversationParams.receiverId,
+            },
+            {
+              senderId: listConversationParams.receiverId,
+              receiverId: listConversationParams.senderId,
+            },
           ],
         },
-        orderBy: { createdAt: 'asc' },
-        skip: (page - 1) * limit,
-        take: limit,
+        orderBy: { createdAt: 'desc' },
+        skip: (listConversationParams.page - 1) * listConversationParams.limit,
+        take: listConversationParams.limit,
       }),
       prisma.message.count({
         where: {
           OR: [
-            { senderId, receiverId },
-            { senderId: receiverId, receiverId: senderId },
+            {
+              senderId: listConversationParams.senderId,
+              receiverId: listConversationParams.receiverId,
+            },
+            {
+              senderId: listConversationParams.receiverId,
+              receiverId: listConversationParams.senderId,
+            },
           ],
         },
       }),
     ]);
     return { messages, totalItems };
-  };
+  },
 
-  const listConversations = async (userId: string, page = 1, limit = 20) => {
+  listConversations: async (
+    listConversationsParams: ListConversationsParams
+  ) => {
     const conversations = await prisma.$queryRaw<
       Array<{ otherUserId: string; lastMessageAt: Date }>
     >`
       SELECT DISTINCT
         CASE
-          WHEN sender_id = ${userId}::uuid THEN receiver_id
+          WHEN sender_id = ${listConversationsParams.userId}::uuid THEN receiver_id
           ELSE sender_id
         END as "otherUserId",
         MAX(created_at) as "lastMessageAt"
       FROM messages
-      WHERE (sender_id = ${userId}::uuid OR receiver_id = ${userId}::uuid)
+      WHERE (sender_id = ${listConversationsParams.userId}::uuid OR receiver_id = ${listConversationsParams.userId}::uuid)
       GROUP BY "otherUserId"
       ORDER BY "lastMessageAt" DESC
-      LIMIT ${limit}
-      OFFSET ${(page - 1) * limit}
+      LIMIT ${listConversationsParams.limit}
+      OFFSET ${(listConversationsParams.page - 1) * listConversationsParams.limit}
     `;
 
     const totalItems = await prisma.$queryRaw<Array<{ count: bigint }>>`
       SELECT COUNT(DISTINCT
         CASE
-          WHEN sender_id = ${userId}::uuid THEN receiver_id
+          WHEN sender_id = ${listConversationsParams.userId}::uuid THEN receiver_id
           ELSE sender_id
         END
       ) as count
       FROM messages
-      WHERE (sender_id = ${userId}::uuid OR receiver_id = ${userId}::uuid)
+      WHERE (sender_id = ${listConversationsParams.userId}::uuid OR receiver_id = ${listConversationsParams.userId}::uuid)
     `;
 
     const otherUserIds = conversations.map((c) => c.otherUserId);
@@ -94,13 +109,13 @@ const messageRepository = () => {
             ROW_NUMBER() OVER (
               PARTITION BY
                 CASE
-                  WHEN m.sender_id = ${userId}::uuid THEN m.receiver_id
+                  WHEN m.sender_id = ${listConversationsParams.userId}::uuid THEN m.receiver_id
                   ELSE m.sender_id
                 END
               ORDER BY m.created_at DESC
             ) AS rm
           FROM messages m
-          WHERE (m.sender_id = ${userId}::uuid OR m.receiver_id = ${userId}::uuid)
+          WHERE (m.sender_id = ${listConversationsParams.userId}::uuid OR m.receiver_id = ${listConversationsParams.userId}::uuid)
         )
         SELECT id, "senderId", "receiverId", content, "contentType", status, "createdAt"
         FROM RankedMessages
@@ -112,8 +127,10 @@ const messageRepository = () => {
       const user = users.find((u) => u.id === conv.otherUserId);
       const lastMessage = lastMessages.find(
         (msg) =>
-          (msg.senderId === userId && msg.receiverId === conv.otherUserId) ||
-          (msg.senderId === conv.otherUserId && msg.receiverId === userId)
+          (msg.senderId === listConversationsParams.userId &&
+            msg.receiverId === conv.otherUserId) ||
+          (msg.senderId === conv.otherUserId &&
+            msg.receiverId === listConversationsParams.userId)
       );
 
       return {
@@ -128,42 +145,42 @@ const messageRepository = () => {
       conversations: result,
       totalItems: Number(totalItems[0]?.count || 0),
     };
-  };
+  },
 
-  const getById = async (id: string) => {
+  getById: async (id: string) => {
     return await prisma.message.findUnique({ where: { id } });
-  };
+  },
 
-  const create = async (
-    senderId: string,
-    receiverId: string,
-    content: string,
-    contentType: 'text' | 'attachment'
-  ) => {
+  create: async (createMessageParams: CreateMessageParams) => {
     return await prisma.message.create({
-      data: { senderId, receiverId, content, contentType, status: 'sent' },
+      data: { ...createMessageParams, status: 'sent' },
     });
-  };
+  },
 
-  const updateText = async (id: string, content: string) => {
-    return await prisma.message.update({ where: { id }, data: { content } });
-  };
+  updateText: async (updateMessageParams: UpdateMessageParams) => {
+    return await prisma.message.update({
+      where: { id: updateMessageParams.id },
+      data: { content: updateMessageParams.content },
+    });
+  },
 
-  const remove = async (id: string) => {
+  remove: async (id: string) => {
     return await prisma.message.update({
       where: { id },
       data: { deletedAt: new Date() },
     });
-  };
+  },
 
-  return {
-    listConversation,
-    listConversations,
-    getById,
-    create,
-    updateText,
-    remove,
-  };
+  markAsRead: async (userId: string, otherUserId: string) => {
+    return await prisma.message.updateMany({
+      where: {
+        senderId: otherUserId,
+        receiverId: userId,
+        status: { not: 'read' },
+      },
+      data: { status: 'read' },
+    });
+  },
 };
 
-export default messageRepository();
+export default messageRepository;

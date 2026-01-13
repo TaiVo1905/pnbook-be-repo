@@ -2,112 +2,128 @@ import postRepository from '@/shared/repositories/post.repository.js';
 import postAttachmentRepository from '@/shared/repositories/postAttachment.repository.js';
 import notificationRepository from '@/shared/repositories/notification.repository.js';
 import userRepository from '@/shared/repositories/user.repository.js';
-import { ForbiddenError, NotFoundError } from '@/core/apiError.js';
+import { NotFoundError } from '@/core/apiError.js';
+import {
+  checkOwnership,
+  checkDeletePermission,
+} from '@/utils/authorization.util.js';
 import firestoreService from '@/infrastructure/firestore.service.js';
+import { POSTS_MESSAGES } from './posts.messages.js';
+import type { CreatePostRequestDto } from './dtos/createPostRequest.dto.js';
+import type { NotificationRequestDto } from '../notifications/dtos/notificationRequest.dto.js';
+import type { GetPostRequestDto } from './dtos/getPostRequest.dto.js';
+import type { UpdatePostRequestDto } from './dtos/updatePostRequest.dto.js';
+import type { ReactPostRequestDto } from './dtos/reactPostRequest.dto.js';
 
-const postsService = () => {
-  const create = async (
-    posterId: string,
-    content: string,
-    originalPostId?: string,
-    attachments?: Array<{
-      attachmentUrl: string;
-      type: 'image' | 'video' | 'audio';
-    }>
-  ) => {
-    if (originalPostId && !(await postRepository.getById(originalPostId))) {
-      throw new NotFoundError('Original post not found');
+const hydrated = (posts: any[]) =>
+  posts.map(({ reactions, ...rest }: any) => ({
+    ...rest,
+    reacted: reactions && reactions.length > 0,
+  }));
+
+const postsService = {
+  create: async (createPostPayload: CreatePostRequestDto) => {
+    const { posterId, content, originalPostId, attachments } =
+      createPostPayload;
+
+    if (
+      originalPostId &&
+      !(await postRepository.getById({ id: originalPostId, userId: posterId }))
+    ) {
+      throw new NotFoundError(POSTS_MESSAGES.ORIGINAL_POST_NOT_FOUND);
     }
 
-    const post = await postRepository.create(posterId, content, originalPostId);
+    const post = await postRepository.create({
+      posterId,
+      content,
+      originalPostId,
+    });
+
     if (attachments && attachments.length > 0) {
-      await postAttachmentRepository.createMany(post.id, attachments);
+      await postAttachmentRepository.createMany({
+        postId: post.id,
+        attachments,
+      });
     }
 
     const friendConnections = await userRepository.getFriendIds(posterId);
     for (const friendId of friendConnections) {
-      const notification = await notificationRepository.create({
+      const notification: NotificationRequestDto = {
         receiverId: friendId,
-        title: originalPostId ? 'New Repost' : 'New Post',
+        title: originalPostId
+          ? POSTS_MESSAGES.NEW_REPOST_TITLE
+          : POSTS_MESSAGES.NEW_POST_TITLE,
         content: originalPostId
-          ? 'Your friend reposted something new'
-          : 'Your friend posted something new',
+          ? POSTS_MESSAGES.NEW_REPOST_CONTENT
+          : POSTS_MESSAGES.NEW_POST_CONTENT,
         targetDetails: JSON.stringify({ postId: post.id, posterId }),
-      });
+      };
+      const filledNotification =
+        await notificationRepository.create(notification);
 
       await firestoreService.triggerNotification({
-        id: notification.id,
-        receiverId: friendId,
-        title: originalPostId ? 'New Repost' : 'New Post',
-        content: originalPostId
-          ? 'Your friend reposted something new'
-          : 'Your friend posted something new',
-        targetDetails: JSON.stringify({ postId: post.id, posterId }),
+        id: filledNotification.id,
+        ...notification,
       });
     }
 
     return post;
-  };
+  },
 
-  const getById = async (id: string) => {
-    const post = await postRepository.getById(id);
-    if (!post || post.deletedAt) throw new NotFoundError('Post not found');
-    return post;
-  };
+  getById: async (id: string, userId: string) => {
+    const post = await postRepository.getById({ id, userId });
+    if (!post || post.deletedAt)
+      throw new NotFoundError(POSTS_MESSAGES.POST_NOT_FOUND);
+    const hydratedPosts = hydrated([post]);
+    return hydratedPosts[0];
+  },
 
-  const getByPoster = async (posterId: string, page = 1, limit = 20) => {
-    const { posts, count } = await postRepository.getByPoster(
-      posterId,
-      page,
-      limit
+  getByPoster: async (getPostRequestDto: GetPostRequestDto) => {
+    const { posts, count } =
+      await postRepository.getByPoster(getPostRequestDto);
+
+    const hydratedPosts = hydrated(posts);
+    return { posts: hydratedPosts, count };
+  },
+
+  getFeeds: async (getPostRequestDto: GetPostRequestDto) => {
+    const { posts, count } = await postRepository.getFeeds({
+      userId: getPostRequestDto.posterId,
+      page: getPostRequestDto.page,
+      limit: getPostRequestDto.limit,
+    });
+    return { posts: hydrated(posts), count };
+  },
+
+  update: async (updatePostRequestDto: UpdatePostRequestDto) => {
+    const existing = await postsService.getById(
+      updatePostRequestDto.postId,
+      updatePostRequestDto.actorId
     );
-    return { posts, count };
-  };
+    checkOwnership(existing.posterId, updatePostRequestDto.actorId, 'post');
+    return await postRepository.update({
+      id: updatePostRequestDto.postId,
+      content: updatePostRequestDto.content,
+    });
+  },
 
-  const getFeeds = async (userId: string, page = 1, limit = 20) => {
-    const { posts, count } = await postRepository.getFeeds(userId, page, limit);
-    return { posts, count };
-  };
+  remove: async (id: string, actorId: string) => {
+    const existing = await postsService.getById(id, actorId);
+    checkDeletePermission(existing.posterId, actorId, 'post');
+    return await postRepository.remove(id);
+  },
 
-  const update = async (id: string, actorId: string, content: string) => {
-    const existing = await getById(id);
-    if (existing.posterId !== actorId) {
-      throw new ForbiddenError("Cannot edit others' post");
-    }
-    return await postRepository.update(id, content);
-  };
-
-  const remove = async (id: string, actorId: string) => {
-    const existing = await getById(id);
-    if (existing.posterId !== actorId) {
-      throw new ForbiddenError("Cannot delete others' post");
-    }
-    return await postRepository.deletePost(id);
-  };
-
-  const listReactions = async (postId: string) => {
+  listReactions: async (postId: string) => {
     return await postRepository.listReactions(postId);
-  };
+  },
 
-  const react = async (postId: string, reactorId: string) => {
-    return await postRepository.react(postId, reactorId);
-  };
+  react: async (reactPostRequestDto: ReactPostRequestDto) => {
+    return await postRepository.react(reactPostRequestDto);
+  },
 
-  const unreact = async (postId: string, reactorId: string) => {
-    return await postRepository.unreact(postId, reactorId);
-  };
-
-  return {
-    create,
-    getById,
-    getByPoster,
-    getFeeds,
-    update,
-    remove,
-    listReactions,
-    react,
-    unreact,
-  };
+  unreact: async (reactPostRequestDto: ReactPostRequestDto) => {
+    return await postRepository.unreact(reactPostRequestDto);
+  },
 };
 
-export default postsService();
+export default postsService;

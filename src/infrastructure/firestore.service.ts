@@ -1,13 +1,9 @@
 import { firebase } from '@/config/firebase.js';
+import type { MessageRequestDto } from './dtos/messageRequest.dto.js';
+import type { NotificationRequestDto } from './dtos/notificationRequest.dto.js';
 
-const firestoreService = () => {
-  const triggerNewMessage = async (message: {
-    id: string;
-    senderId: string;
-    receiverId: string;
-    content: string;
-    contentType: 'text' | 'attachment';
-  }) => {
+const firestoreService = {
+  triggerNewMessage: async (message: MessageRequestDto) => {
     try {
       const db = firebase.db();
       const convId = [message.senderId, message.receiverId].sort().join(':');
@@ -31,15 +27,9 @@ const firestoreService = () => {
     } catch (_err: any) {
       return { triggered: false, messageId: message.id };
     }
-  };
+  },
 
-  const triggerNotification = async (notification: {
-    id: string;
-    receiverId: string;
-    title: string;
-    content: string;
-    targetDetails?: string;
-  }) => {
+  triggerNotification: async (notification: NotificationRequestDto) => {
     try {
       const db = firebase.db();
       await db
@@ -58,9 +48,7 @@ const firestoreService = () => {
     } catch (_err: any) {
       return { triggered: false, notificationId: notification.id };
     }
-  };
-
-  return { triggerNewMessage, triggerNotification };
+  },
 };
 
-export default firestoreService();
+export default firestoreService;

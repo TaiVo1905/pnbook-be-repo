@@ -2,88 +2,118 @@ import type { Request, Response } from 'express';
 import { catchAsync } from '@/utils/catchAsync.js';
 import postsService from './posts.service.js';
 import { ApiResponse } from '@/core/apiResponse.js';
+import type { CreatePostRequestDto } from './dtos/createPostRequest.dto.js';
+import { POSTS_MESSAGES } from './posts.messages.js';
 
 export const postsController = {
   create: catchAsync(async (req: Request, res: Response) => {
-    const post = await postsService.create(
-      req.user!.id,
-      req.body.content,
-      req.body.originalPostId,
-      req.body.attachments
-    );
-    const response = ApiResponse.created('Post created', post);
+    const createPostPayload: CreatePostRequestDto = {
+      posterId: req.user!.id,
+      content: req.body.content,
+      originalPostId: req.body.originalPostId,
+      attachments: req.body.attachments,
+    };
+    const post = await postsService.create(createPostPayload);
+    const response = ApiResponse.created(POSTS_MESSAGES.POST_CREATED, post);
     return res.status(response.statusCode).json(response);
   }),
 
   getById: catchAsync(async (req: Request, res: Response) => {
-    const post = await postsService.getById(req.params.id);
-    const response = ApiResponse.success('Post fetched', post);
+    const post = await postsService.getById(req.params.id, req.user!.id);
+    const response = ApiResponse.success(POSTS_MESSAGES.POSTS_FETCHED, post);
     return res.status(response.statusCode).json(response);
   }),
 
   getByPoster: catchAsync(async (req: Request, res: Response) => {
     const page = Number(req.query.page || 1);
     const limit = Number(req.query.limit || 20);
-    const { posts, count } = await postsService.getByPoster(
-      req.params.id,
+    const getPostPayload = {
+      posterId: req.params.id,
+      userId: req.user!.id,
       page,
-      limit
-    );
-    const response = ApiResponse.paginated('Posts fetched', posts, {
-      currentPage: page,
       limit,
-      totalItems: count,
-    });
+    };
+    const { posts, count } = await postsService.getByPoster(getPostPayload);
+    const response = ApiResponse.paginated(
+      POSTS_MESSAGES.POSTS_FETCHED,
+      posts,
+      {
+        currentPage: page,
+        limit,
+        totalItems: count,
+      }
+    );
     return res.status(response.statusCode).json(response);
   }),
 
   getFeeds: catchAsync(async (req: Request, res: Response) => {
     const page = Number(req.query.page || 1);
     const limit = Number(req.query.limit || 20);
-    const { posts, count } = await postsService.getFeeds(
-      req.user!.id,
+    const getPostPayload = {
+      posterId: req.params.id,
+      userId: req.user!.id,
       page,
-      limit
-    );
-    const response = ApiResponse.paginated('Feeds fetched', posts, {
-      currentPage: page,
       limit,
-      totalItems: count,
-    });
+    };
+    const { posts, count } = await postsService.getFeeds(getPostPayload);
+    const response = ApiResponse.paginated(
+      POSTS_MESSAGES.FEEDS_FETCHED,
+      posts,
+      {
+        currentPage: page,
+        limit,
+        totalItems: count,
+      }
+    );
     return res.status(response.statusCode).json(response);
   }),
 
   update: catchAsync(async (req: Request, res: Response) => {
-    const post = await postsService.update(
-      req.params.id,
-      req.user!.id,
-      req.body.content
-    );
-    const response = ApiResponse.success('Post updated', post);
+    const updatePostPayload = {
+      postId: req.params.id,
+      actorId: req.user!.id,
+      content: req.body.content,
+    };
+    const post = await postsService.update(updatePostPayload);
+    const response = ApiResponse.success(POSTS_MESSAGES.POST_UPDATED, post);
     return res.status(response.statusCode).json(response);
   }),
 
   remove: catchAsync(async (req: Request, res: Response) => {
     const post = await postsService.remove(req.params.id, req.user!.id);
-    const response = ApiResponse.success('Post deleted', post);
+    const response = ApiResponse.success(POSTS_MESSAGES.POST_DELETED, post);
     return res.status(response.statusCode).json(response);
   }),
 
   listReactions: catchAsync(async (req: Request, res: Response) => {
     const reactions = await postsService.listReactions(req.params.id);
-    const response = ApiResponse.success('Reactions fetched', reactions);
+    const response = ApiResponse.success(
+      POSTS_MESSAGES.REACTIONS_FETCHED,
+      reactions
+    );
     return res.status(response.statusCode).json(response);
   }),
 
   react: catchAsync(async (req: Request, res: Response) => {
-    const reaction = await postsService.react(req.params.id, req.user!.id);
-    const response = ApiResponse.created('Post reacted', reaction);
+    const reactionPayload = {
+      postId: req.params.id,
+      reactorId: req.user!.id,
+    };
+    const reaction = await postsService.react(reactionPayload);
+    const response = ApiResponse.created(POSTS_MESSAGES.POST_REACTED, reaction);
     return res.status(response.statusCode).json(response);
   }),
 
   unreact: catchAsync(async (req: Request, res: Response) => {
-    const reaction = await postsService.unreact(req.params.id, req.user!.id);
-    const response = ApiResponse.success('Reaction removed', reaction);
+    const reactionPayload = {
+      postId: req.params.id,
+      reactorId: req.user!.id,
+    };
+    const reaction = await postsService.unreact(reactionPayload);
+    const response = ApiResponse.success(
+      POSTS_MESSAGES.REACTION_REMOVED,
+      reaction
+    );
     return res.status(response.statusCode).json(response);
   }),
 };
