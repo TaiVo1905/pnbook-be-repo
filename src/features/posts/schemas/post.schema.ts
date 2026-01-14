@@ -10,7 +10,7 @@ export const postSchema = z.object({
       .array(
         z.object({
           attachmentUrl: z.string().min(1),
-          type: z.enum(['image', 'video', 'audio']),
+          attachmentType: z.enum(['image', 'video', 'audio']),
         })
       )
       .max(10, 'Attachments cannot exceed 10 items')

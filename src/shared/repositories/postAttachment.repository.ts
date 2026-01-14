@@ -28,6 +28,13 @@ const postAttachmentRepository = {
       where: { postId, deletedAt: null },
     });
   },
+
+  deleteByPostId: async (postId: string) => {
+    return await prisma.postAttachment.updateMany({
+      where: { postId, deletedAt: null },
+      data: { deletedAt: new Date() },
+    });
+  },
 };
 
 export default postAttachmentRepository;

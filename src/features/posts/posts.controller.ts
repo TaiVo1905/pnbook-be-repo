@@ -50,7 +50,6 @@ export const postsController = {
     const page = Number(req.query.page || 1);
     const limit = Number(req.query.limit || 20);
     const getPostPayload = {
-      posterId: req.params.id,
       userId: req.user!.id,
       page,
       limit,
@@ -73,6 +72,7 @@ export const postsController = {
       postId: req.params.id,
       actorId: req.user!.id,
       content: req.body.content,
+      attachments: req.body.attachments,
     };
     const post = await postsService.update(updatePostPayload);
     const response = ApiResponse.success(POSTS_MESSAGES.POST_UPDATED, post);

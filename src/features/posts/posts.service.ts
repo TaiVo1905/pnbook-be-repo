@@ -14,7 +14,6 @@ import type { NotificationRequestDto } from '../notifications/dtos/notificationR
 import type { GetPostRequestDto } from './dtos/getPostRequest.dto.js';
 import type { UpdatePostRequestDto } from './dtos/updatePostRequest.dto.js';
 import type { ReactPostRequestDto } from './dtos/reactPostRequest.dto.js';
-
 const hydrated = (posts: any[]) =>
   posts.map(({ reactions, ...rest }: any) => ({
     ...rest,
@@ -79,8 +78,13 @@ const postsService = {
   },
 
   getByPoster: async (getPostRequestDto: GetPostRequestDto) => {
-    const { posts, count } =
-      await postRepository.getByPoster(getPostRequestDto);
+    const posterId = getPostRequestDto.posterId!;
+    const { posts, count } = await postRepository.getByPoster({
+      posterId,
+      userId: getPostRequestDto.userId,
+      page: getPostRequestDto.page,
+      limit: getPostRequestDto.limit,
+    });
 
     const hydratedPosts = hydrated(posts);
     return { posts: hydratedPosts, count };
@@ -88,7 +92,7 @@ const postsService = {
 
   getFeeds: async (getPostRequestDto: GetPostRequestDto) => {
     const { posts, count } = await postRepository.getFeeds({
-      userId: getPostRequestDto.posterId,
+      userId: getPostRequestDto.userId,
       page: getPostRequestDto.page,
       limit: getPostRequestDto.limit,
     });
@@ -101,10 +105,30 @@ const postsService = {
       updatePostRequestDto.actorId
     );
     checkOwnership(existing.posterId, updatePostRequestDto.actorId, 'post');
-    return await postRepository.update({
+
+    await postRepository.update({
       id: updatePostRequestDto.postId,
       content: updatePostRequestDto.content,
     });
+
+    if (updatePostRequestDto.attachments !== undefined) {
+      await postAttachmentRepository.deleteByPostId(
+        updatePostRequestDto.postId
+      );
+      if (
+        updatePostRequestDto.attachments &&
+        updatePostRequestDto.attachments.length > 0
+      ) {
+        await postAttachmentRepository.createMany({
+          postId: updatePostRequestDto.postId,
+          attachments: updatePostRequestDto.attachments,
+        });
+      }
+    }
+    return await postsService.getById(
+      updatePostRequestDto.postId,
+      updatePostRequestDto.actorId
+    );
   },
 
   remove: async (id: string, actorId: string) => {
