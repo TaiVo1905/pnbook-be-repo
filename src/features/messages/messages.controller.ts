@@ -70,7 +70,7 @@ export const messagesController = {
 
   updateText: catchAsync(async (req: Request, res: Response) => {
     const updateTextPayload = {
-      id: req.params.id,
+      id: String(req.params.id),
       actorId: req.user!.id,
       content: req.body.content,
     };
@@ -83,7 +83,7 @@ export const messagesController = {
   }),
 
   remove: catchAsync(async (req: Request, res: Response) => {
-    await messagesService.remove(req.params.id, req.user!.id);
+    await messagesService.remove(String(req.params.id), req.user!.id);
     const response = new ApiResponse(
       statusCodes.SUCCESS,
       MESSAGES_MESSAGES.MESSAGE_DELETED

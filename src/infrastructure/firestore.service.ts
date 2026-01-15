@@ -49,6 +49,67 @@ const firestoreService = {
       return { triggered: false, notificationId: notification.id };
     }
   },
+
+  triggerNewComment: async (data: {
+    postId: string;
+    commentId: string;
+    commenterId: string;
+    commenterName: string;
+    commenterAvatar?: string;
+    content: string;
+  }) => {
+    try {
+      const db = firebase.db();
+      await db
+        .collection('posts')
+        .doc(data.postId)
+        .collection('comments')
+        .doc(data.commentId)
+        .set({
+          id: data.commentId,
+          commenterId: data.commenterId,
+          commenterName: data.commenterName,
+          commenterAvatar: data.commenterAvatar || null,
+          content: data.content,
+          createdAt: new Date().toISOString(),
+        });
+      return { triggered: true, commentId: data.commentId };
+    } catch (_err: any) {
+      return { triggered: false, commentId: data.commentId };
+    }
+  },
+
+  triggerNewReply: async (data: {
+    postId: string;
+    commentId: string;
+    replyId: string;
+    replierId: string;
+    replierName: string;
+    replierAvatar?: string;
+    content: string;
+  }) => {
+    try {
+      const db = firebase.db();
+      await db
+        .collection('posts')
+        .doc(data.postId)
+        .collection('comments')
+        .doc(data.commentId)
+        .collection('replies')
+        .doc(data.replyId)
+        .set({
+          id: data.replyId,
+          replierId: data.replierId,
+          replierName: data.replierName,
+          replierAvatar: data.replierAvatar || null,
+          content: data.content,
+          createdAt: new Date().toISOString(),
+        });
+      return { triggered: true, replyId: data.replyId };
+    } catch (_err: any) {
+      return { triggered: false, replyId: data.replyId };
+    }
+  },
 };
 
 export default firestoreService;

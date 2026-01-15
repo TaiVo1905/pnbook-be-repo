@@ -12,12 +12,6 @@ const generateRefreshToken = () => {
   return refreshToken;
 };
 
-const getRefreshTokenExpiry = () => {
-  const expiresAt = new Date();
-  expiresAt.setDate(expiresAt.getDate() + 7);
-  return expiresAt;
-};
-
 const generateAccessToken = (id: string) => {
   if (!config.jwt.secret) {
     throw new Error('JWT secret is not configured');
@@ -41,9 +35,4 @@ const setTokenCookie = (
   return res;
 };
 
-export {
-  generateRefreshToken,
-  getRefreshTokenExpiry,
-  generateAccessToken,
-  setTokenCookie,
-};
+export { generateRefreshToken, generateAccessToken, setTokenCookie };

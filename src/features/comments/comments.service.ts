@@ -1,12 +1,14 @@
 import commentRepository from '@/shared/repositories/comment.repository.js';
 import postRepository from '@/shared/repositories/post.repository.js';
 import notificationRepository from '@/shared/repositories/notification.repository.js';
+import userRepository from '@/shared/repositories/user.repository.js';
 import { NotFoundError } from '@/core/apiError.js';
 import {
   checkOwnership,
   checkDeletePermission,
 } from '@/utils/authorization.util.js';
 import { COMMENTS_MESSAGES } from './comments.messages.js';
+import firestoreService from '@/infrastructure/firestore.service.js';
 
 const commentsService = {
   create: async (postId: string, commenterId: string, content: string) => {
@@ -20,6 +22,7 @@ const commentsService = {
       id: postId,
       userId: commenterId,
     });
+
     if (post && post.posterId !== commenterId) {
       await notificationRepository.create({
         receiverId: post.posterId,
@@ -30,6 +33,19 @@ const commentsService = {
           commentId: comment.id,
           commenterId,
         }),
+      });
+    }
+
+    const commenter = await userRepository.findById(commenterId);
+    console.log('commenter', commenter);
+    if (commenter) {
+      await firestoreService.triggerNewComment({
+        postId,
+        commentId: comment.id,
+        commenterId,
+        commenterName: commenter?.name,
+        commenterAvatar: commenter.avatarUrl!,
+        content,
       });
     }
 

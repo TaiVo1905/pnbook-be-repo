@@ -80,16 +80,28 @@ const authService = {
       let user;
 
       if (!socialAccount) {
-        user = await userRepository.upsertWithGoogleAuth(userInfoResponse, tx);
+        try {
+          user = await userRepository.upsertWithGoogleAuth(
+            userInfoResponse,
+            tx
+          );
+        } catch (error) {
+          user = await userRepository.findByEmail(userInfoResponse.email);
+          if (!user) throw error;
+        }
 
-        await socialAccountRepository.create(
-          {
-            userId: user.id,
-            provider: 'google',
-            providerId: userInfoResponse.sub,
-          },
-          tx
-        );
+        try {
+          await socialAccountRepository.create(
+            {
+              userId: user.id,
+              provider: 'google',
+              providerId: userInfoResponse.sub,
+            },
+            tx
+          );
+        } catch (error) {
+          console.error('Error creating social account:', error);
+        }
 
         return user;
       }

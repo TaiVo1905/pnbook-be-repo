@@ -122,9 +122,9 @@ const userRepository = {
     return await tx.user.update({
       where: { id: userId },
       data: {
-        name: userInfoResponse.name,
+        name: userInfoResponse.name || userInfoResponse.email.split('@')[0],
         email: userInfoResponse.email,
-        avatarUrl: userInfoResponse.picture,
+        avatarUrl: userInfoResponse.picture || null,
       },
     });
   },
@@ -136,11 +136,11 @@ const userRepository = {
     return await tx.user.upsert({
       where: { email: userInfoResponse.email },
       update: {
-        name: userInfoResponse.name,
+        name: userInfoResponse.name || userInfoResponse.email.split('@')[0],
         avatarUrl: userInfoResponse.picture,
       },
       create: {
-        name: userInfoResponse.name,
+        name: userInfoResponse.name || userInfoResponse.email.split('@')[0],
         email: userInfoResponse.email,
         avatarUrl: userInfoResponse.picture,
       },

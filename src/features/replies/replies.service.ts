@@ -1,6 +1,7 @@
 import replyRepository from '@/shared/repositories/reply.repository.js';
 import commentRepository from '@/shared/repositories/comment.repository.js';
 import notificationRepository from '@/shared/repositories/notification.repository.js';
+import userRepository from '@/shared/repositories/user.repository.js';
 import { NotFoundError } from '@/core/apiError.js';
 import {
   checkOwnership,
@@ -10,6 +11,7 @@ import type { CreateReplyRequestDto } from './dtos/createReplyRequest.dto.js';
 import type { GetRepliesRequestDto } from './dtos/getRepliesRequest.dto.js';
 import type { UpdateReplyRequestDto } from './dtos/updateReplyRequest.dto.js';
 import { REPLIES_MESSAGES } from './replies.messages.js';
+import firestoreService from '@/infrastructure/firestore.service.js';
 
 const repliesService = {
   create: async (createReplyPayload: CreateReplyRequestDto) => {
@@ -32,6 +34,19 @@ const repliesService = {
           replyId: reply.id,
           replierId: createReplyPayload.replierId,
         }),
+      });
+    }
+
+    const replier = await userRepository.findById(createReplyPayload.replierId);
+    if (replier && comment?.postId) {
+      await firestoreService.triggerNewReply({
+        postId: comment.postId,
+        commentId: createReplyPayload.commentId,
+        replyId: reply.id,
+        replierId: createReplyPayload.replierId,
+        replierName: replier.name,
+        replierAvatar: replier.avatarUrl || undefined,
+        content: createReplyPayload.content,
       });
     }
 

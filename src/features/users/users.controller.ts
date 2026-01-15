@@ -8,7 +8,7 @@ import { USERS_MESSAGES } from './users.messages.js';
 
 export const usersController = {
   getById: catchAsync(async (req: Request, res: Response) => {
-    const user = await usersService.getById(req.params.id);
+    const user = await usersService.getById(String(req.params.id));
     const response = new ApiResponse(
       statusCodes.SUCCESS,
       USERS_MESSAGES.USER_FETCHED,

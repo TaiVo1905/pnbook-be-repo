@@ -1,11 +1,19 @@
 import userRepository from '@/shared/repositories/user.repository.js';
 import { NotFoundError } from '@/core/apiError.js';
 import { USERS_MESSAGES } from './users.messages.js';
+import { cacheService } from '@/infrastructure/cache.service.js';
 import type { UserResponse } from './user.response.js';
 import type { UpdateUserRequest } from './dtos/updateUserRequest.dto.js';
 
 const usersService = {
   getById: async (id: string): Promise<UserResponse> => {
+    const cacheKey = cacheService.generateUserKey(id);
+    const cached = await cacheService.get<UserResponse>(cacheKey);
+
+    if (cached) {
+      return cached;
+    }
+
     const user = await userRepository.findById(id);
     if (!user || user.deletedAt)
       throw new NotFoundError(USERS_MESSAGES.USER_NOT_FOUND);
@@ -16,6 +24,9 @@ const usersService = {
       avatarUrl: user.avatarUrl || null,
       createdAt: user.createdAt.toISOString(),
     };
+
+    await cacheService.set(cacheKey, userResponse, 3600);
+
     return userResponse;
   },
 
@@ -34,6 +45,10 @@ const usersService = {
       avatarUrl: updatedUser.avatarUrl || null,
       createdAt: updatedUser.createdAt.toISOString(),
     };
+
+    const cacheKey = cacheService.generateUserKey(updatedUserRequest.userId);
+    await cacheService.del(cacheKey);
+
     return userResponse;
   },
 

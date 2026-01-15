@@ -23,7 +23,7 @@ export const commentsController = {
     const page = Number(req.query.page || 1);
     const limit = Number(req.query.limit || 20);
     const { list, count } = await commentsService.listByPost(
-      req.params.id,
+      String(req.params.id),
       page,
       limit
     );
@@ -41,7 +41,7 @@ export const commentsController = {
 
   update: catchAsync(async (req: Request, res: Response) => {
     const comment = await commentsService.update(
-      req.params.id,
+      String(req.params.id),
       req.user!.id,
       req.body.content
     );
@@ -53,7 +53,7 @@ export const commentsController = {
   }),
 
   remove: catchAsync(async (req: Request, res: Response) => {
-    await commentsService.remove(req.params.id, req.user!.id);
+    await commentsService.remove(String(req.params.id), req.user!.id);
     const response = new ApiResponse(
       statusCodes.SUCCESS,
       COMMENTS_MESSAGES.COMMENT_DELETED

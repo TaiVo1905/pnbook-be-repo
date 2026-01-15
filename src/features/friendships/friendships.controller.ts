@@ -30,7 +30,7 @@ export const friendshipsController = {
     const page = Number(req.query.page || 1);
     const limit = Number(req.query.limit || 20);
     const { list, count } = await friendshipsService.listOfUser({
-      userId: req.params.id,
+      userId: String(req.params.id),
       page,
       limit,
     });
@@ -81,7 +81,7 @@ export const friendshipsController = {
   acceptRequest: catchAsync(async (req: Request, res: Response) => {
     await friendshipsService.acceptRequest({
       addresseeId: req.user!.id,
-      requesterId: req.params.requesterId,
+      requesterId: String(req.params.requesterId),
     });
 
     const response = new ApiResponse(
@@ -94,7 +94,7 @@ export const friendshipsController = {
   rejectRequest: catchAsync(async (req: Request, res: Response) => {
     await friendshipsService.rejectRequest({
       addresseeId: req.user!.id,
-      requesterId: req.params.requesterId,
+      requesterId: String(req.params.requesterId),
     });
 
     const response = new ApiResponse(
@@ -107,7 +107,7 @@ export const friendshipsController = {
   updateStatus: catchAsync(async (req: Request, res: Response) => {
     const friendship = await friendshipsService.updateStatus(
       req.user!.id,
-      req.params.friendId,
+      String(req.params.friendId),
       req.body.status
     );
     const response = ApiResponse.success(
@@ -118,7 +118,7 @@ export const friendshipsController = {
   }),
 
   remove: catchAsync(async (req: Request, res: Response) => {
-    await friendshipsService.remove(req.user!.id, req.params.friendId);
+    await friendshipsService.remove(req.user!.id, String(req.params.friendId));
     const response = new ApiResponse(
       statusCodes.SUCCESS,
       FRIENDSHIPS_MESSAGES.FRIENDSHIP_DELETED

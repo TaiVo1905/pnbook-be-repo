@@ -24,7 +24,7 @@ export const repliesController = {
     const page = Number(req.query.page || 1);
     const limit = Number(req.query.limit || 20);
     const getRepliesRequestDto: GetRepliesRequestDto = {
-      commentId: req.params.id,
+      commentId: String(req.params.id),
       page,
       limit,
     };
@@ -44,7 +44,7 @@ export const repliesController = {
 
   update: catchAsync(async (req: Request, res: Response) => {
     const updateReplyPayload: UpdateReplyRequestDto = {
-      replyId: req.params.id,
+      replyId: String(req.params.id),
       replierId: req.user!.id,
       content: req.body.content,
     };
@@ -54,7 +54,7 @@ export const repliesController = {
   }),
 
   remove: catchAsync(async (req: Request, res: Response) => {
-    await repliesService.remove(req.params.id, req.user!.id);
+    await repliesService.remove(String(req.params.id), req.user!.id);
     const response = new ApiResponse(
       statusCodes.SUCCESS,
       REPLIES_MESSAGES.REPLY_DELETED

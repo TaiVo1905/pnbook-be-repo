@@ -8,7 +8,7 @@ import { POSTS_MESSAGES } from './posts.messages.js';
 export const postsController = {
   create: catchAsync(async (req: Request, res: Response) => {
     const createPostPayload: CreatePostRequestDto = {
-      posterId: req.user!.id,
+      posterId: String(req.user!.id),
       content: req.body.content,
       originalPostId: req.body.originalPostId,
       attachments: req.body.attachments,
@@ -19,7 +19,10 @@ export const postsController = {
   }),
 
   getById: catchAsync(async (req: Request, res: Response) => {
-    const post = await postsService.getById(req.params.id, req.user!.id);
+    const post = await postsService.getById(
+      String(req.params.id),
+      req.user!.id
+    );
     const response = ApiResponse.success(POSTS_MESSAGES.POSTS_FETCHED, post);
     return res.status(response.statusCode).json(response);
   }),
@@ -28,7 +31,7 @@ export const postsController = {
     const page = Number(req.query.page || 1);
     const limit = Number(req.query.limit || 20);
     const getPostPayload = {
-      posterId: req.params.id,
+      posterId: String(req.params.id),
       userId: req.user!.id,
       page,
       limit,
@@ -69,7 +72,7 @@ export const postsController = {
 
   update: catchAsync(async (req: Request, res: Response) => {
     const updatePostPayload = {
-      postId: req.params.id,
+      postId: String(req.params.id),
       actorId: req.user!.id,
       content: req.body.content,
       attachments: req.body.attachments,
@@ -80,13 +83,13 @@ export const postsController = {
   }),
 
   remove: catchAsync(async (req: Request, res: Response) => {
-    const post = await postsService.remove(req.params.id, req.user!.id);
+    const post = await postsService.remove(String(req.params.id), req.user!.id);
     const response = ApiResponse.success(POSTS_MESSAGES.POST_DELETED, post);
     return res.status(response.statusCode).json(response);
   }),
 
   listReactions: catchAsync(async (req: Request, res: Response) => {
-    const reactions = await postsService.listReactions(req.params.id);
+    const reactions = await postsService.listReactions(String(req.params.id));
     const response = ApiResponse.success(
       POSTS_MESSAGES.REACTIONS_FETCHED,
       reactions
@@ -96,7 +99,7 @@ export const postsController = {
 
   react: catchAsync(async (req: Request, res: Response) => {
     const reactionPayload = {
-      postId: req.params.id,
+      postId: String(req.params.id),
       reactorId: req.user!.id,
     };
     const reaction = await postsService.react(reactionPayload);
@@ -106,7 +109,7 @@ export const postsController = {
 
   unreact: catchAsync(async (req: Request, res: Response) => {
     const reactionPayload = {
-      postId: req.params.id,
+      postId: String(req.params.id),
       reactorId: req.user!.id,
     };
     const reaction = await postsService.unreact(reactionPayload);

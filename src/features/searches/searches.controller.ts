@@ -78,7 +78,7 @@ export const searchesController = {
   deleteHistory: catchAsync(async (req: Request, res: Response) => {
     const { id } = req.params;
     const result = await searchService.deleteHistoryById({
-      id,
+      id: String(id),
       userId: req.user!.id,
     });
 

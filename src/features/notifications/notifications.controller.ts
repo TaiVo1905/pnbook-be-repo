@@ -33,7 +33,7 @@ export const notificationsController = {
 
   markAsRead: catchAsync(async (req: Request, res: Response) => {
     const markAsReadPayload: MarkAsReadPayRequestDto = {
-      id: req.params.id,
+      id: String(req.params.id),
       userId: req.user!.id,
     };
 

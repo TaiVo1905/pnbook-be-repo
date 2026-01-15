@@ -45,3 +45,9 @@ export class InternalServerError extends ApiError {
     super(statusCodes.INTERNAL_SERVER_ERROR, message);
   }
 }
+
+export class TooManyRequestsError extends ApiError {
+  constructor(message: string = 'Too Many Requests') {
+    super(statusCodes.TOO_MANY_REQUESTS, message);
+  }
+}
